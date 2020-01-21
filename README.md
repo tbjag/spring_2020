@@ -1,3 +1,5 @@
-#spring_2020
+# spring_2020
 
-###junior year 
+### junior year 
+
+#### team for cs370: alex kubecka, kurt von autenried, theo jagodits
