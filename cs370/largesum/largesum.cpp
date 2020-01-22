@@ -8,11 +8,23 @@
  * "I pledge my honor that I have abided by the Stevens Honor System"
  ******************************************************************************/
 
+#include <fstream>
 #include <iostream>
 
 using namespace std;
 
 int main(){
-    cout << "Hello\n";
+    string line;
+    ifstream myfile ("test.txt");
+    if (myfile.is_open())
+    {
+        while ( getline (myfile,line) )
+        {
+        cout << line << '\n';
+        }
+        myfile.close();
+    } else{
+        cout << "Unable to open the final";
+    }
     return 0;
 }
