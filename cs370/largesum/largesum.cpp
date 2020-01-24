@@ -23,7 +23,8 @@ int main(){
     string sum = "";
     string line;
     ifstream myfile ("test.txt");
-    if (myfile.is_open())
+    //Theo way
+    /*if (myfile.is_open())
     {
         while ( getline (myfile,line) ){
         //reverse the line
@@ -34,7 +35,31 @@ int main(){
             }
         }
         myfile.close();
-    } else{
+    }*/
+
+    //Kurt way
+    char curr;
+    int carry = 0;
+    int digSum = 0;
+    if(myfile.is_open()){
+        while(myfile.get(curr)){
+            if(curr != '/n'){
+                int i = sum.length() - 1;
+                digSum = ((sum[i] - '0') + (curr - '0'));
+                sum[i] = (digSum % 10 + '0');
+                carry = digSum/10;
+                while(carry){
+                    i--;
+                    digSum = (sum[i] - '0') + carry;
+                    sum[i] = (digSum % 10 + '0');
+                    carry = digSum/10;
+                }
+            }
+        }
+    }
+    myfile.close();
+    return sum;
+    else{
         cout << "Unable to open the file";
     }
     return 0;
