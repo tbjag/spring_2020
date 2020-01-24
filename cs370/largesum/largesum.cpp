@@ -55,12 +55,12 @@ int main(){
                 i--;
                }
                 //if num1 is smaller add remaining digit of num2 to res
-               /*while(j >=0){
+               while(j >=0){
                 digSum = ((line[j] - '0') + carry);
                 sum += (digSum%10 + '0');
                 carry = digSum/10;
                 j--;
-               }*/
+               }
                 //at last if carry is there add it to res
                if(carry){
                 sum +=(carry + '0');
