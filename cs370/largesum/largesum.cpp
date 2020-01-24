@@ -36,7 +36,6 @@ int main(){
             }
             else{
                 //reverse the line
-                reverse(line);
                 //in every line
                 int i = sum.length() - 1;
                 int j = line.length() - 1;
@@ -65,11 +64,11 @@ int main(){
                if(carry){
                 sum +=(carry + '0');
                }
-                //finally reverse res string to get the final sum
-                reverse(sum);
             }
         }
     }
+    //finally reverse res string to get the final sum
+    reverse(sum);
     myfile.close();
     
 
