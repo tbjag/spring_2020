@@ -29,9 +29,7 @@ int main(){
             reverse(line);
             //in every line
             for(int i = 0; i < line.length(); i++){
-                if(line.length() == sum.length()){
-                    
-                }
+
             }
         }
         myfile.close();
