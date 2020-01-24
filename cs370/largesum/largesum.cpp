@@ -24,7 +24,7 @@ int main(){
     string line;
     ifstream myfile ("test.txt");
     //Theo way
-    /*if (myfile.is_open())
+    if (myfile.is_open())
     {
         while ( getline (myfile,line) ){
         //reverse the line
@@ -35,7 +35,7 @@ int main(){
             }
         }
         myfile.close();
-    }*/
+    }
 
     //Kurt way
     char curr;
