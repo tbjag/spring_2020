@@ -20,17 +20,18 @@ using namespace std;
 
 
 int main(){
-    string sum = "";
+    string sum = "0";
     string line;
     ifstream myfile ("test.txt");
-    if (myfile.is_open())
-    {
+    if (myfile.is_open()){
         while ( getline (myfile,line) ){
-        //reverse the line
-        reverse(line);
-        //in every line
-        for(int i = 0; i < line.length(); i++){
-            //string t = line[i] + 
+            //reverse the line
+            reverse(line);
+            //in every line
+            for(int i = 0; i < line.length(); i++){
+                if(line.length() == sum.length()){
+                    
+                }
             }
         }
         myfile.close();
