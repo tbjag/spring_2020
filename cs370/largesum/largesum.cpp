@@ -20,7 +20,7 @@ using namespace std;
 
 
 int main(){
-    string sum = "";
+    string sum = "0";
     string line;
     ifstream myfile ("test.txt");
     //Theo way
