@@ -20,82 +20,55 @@ using namespace std;
 
 
 int main(){
-    string sum = "";
+    string sum = "0";
     string line;
     ifstream myfile ("test.txt");
-    //Theo way
     int carry = 0;
     int digSum = 0;
-    bool firstRun = true;
-    if (myfile.is_open())
-    {
-        while ( getline (myfile,line) ){
-            if(firstRun){
-                sum = line;
-                firstRun = false;
-            }
-            else{
-                //reverse the line
-                //in every line
-                int i = sum.length() - 1;
-                int j = line.length() - 1;
-                while(i >= 0 && j >=0){
-                    digSum = ((sum[i] - '0') + (line[j] - '0')+ carry);
-                    sum +=(digSum %10+ '0');
-                    carry = digSum/10;
-                    i--;
-                    j--;
-                }
-                //if num2 is smaller add remaining digit of num1 to res
-               while(i >=0){
-                digSum =((sum[i] - '0') + carry);
-                sum +=(digSum%10 + '0');
-                carry = digSum/10;
-                i--;
-               }
-                //if num1 is smaller add remaining digit of num2 to res
-               while(j >=0){
-                digSum = ((line[j] - '0') + carry);
-                sum += (digSum%10 + '0');
-                carry = digSum/10;
-                j--;
-               }
-                //at last if carry is there add it to res
-               if(carry){
-                sum +=(carry + '0');
-               }
-            }
-        }
-    }
-    //finally reverse res string to get the final sum
-    reverse(sum);
-    myfile.close();
-    
 
-    //Kurt way
-    /*char curr;
-    int carry = 0;
-    int digSum = 0;
-    if(myfile.is_open()){
-        while(myfile.get(curr)){
-            if(curr != '/n'){
-                int i = sum.length() - 1;
-                digSum = ((sum[i] - '0') + (curr - '0'));
-                sum[i] = (digSum % 10 + '0');
+    if (myfile.is_open()){
+        while ( getline (myfile,line) ){
+            int i = sum.length() - 1;
+            //if end of line is not there \n, just sub 1
+            int j = line.length() - 2;
+            //cout<<line[j-1]<<'\n';
+            // if(line.at(j-1) == '\n'){
+            //     cout<<"test"; // not running this line
+            //     j = j-2;
+            // }else{
+            //     j = j-2;
+            // }
+            cout << i << j << "\n";
+            while(i >= 0 && j >= 0){
+                digSum = sum[i] + line[j] - (2 * '0') + carry;
                 carry = digSum/10;
-                while(carry){
-                    i--;
-                    digSum = (sum[i] - '0') + carry;
-                    sum[i] = (digSum % 10 + '0');
+                sum += digSum%10;
+                i--;
+                j--;
+            }
+            if(i > 0){
+                for(i; i > 0; i--){
+                    digSum = sum[i] - '0' + carry;
                     carry = digSum/10;
+                    sum += digSum%10;
+                }
+            }else{
+                for(j; j > 0; j--){
+                    digSum = line[j] - '0' + carry;
+                    carry = digSum/10;
+                    sum += digSum%10;
                 }
             }
         }
+
+        myfile.close();
+        cout << "sum is: " << sum << "\n";
+        return 0;
     }
-    myfile.close();*/
-    return sum;
+        
     else{
         cout << "Unable to open the file";
+        return 1;
     }
     return 0;
 }
