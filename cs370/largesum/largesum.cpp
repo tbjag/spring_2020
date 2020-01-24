@@ -20,47 +20,54 @@ using namespace std;
 
 
 int main(){
-    string sum = "0";
+    string sum = "";
     string line;
     ifstream myfile ("test.txt");
     //Theo way
     int carry = 0;
     int digSum = 0;
+    bool firstRun = true;
     if (myfile.is_open())
     {
         while ( getline (myfile,line) ){
-        //reverse the line
-            reverse(line);
-            //in every line
-            int i = sum.length() - 1;
-            int j = line.length() - 1;
-            while(i >= 0 && j >=0){
-                digSum = ((sum[i] - '0') + (line[j] - '0')+ carry);
-                sum +=(digSum %10+ '0');
+            if(firstRun){
+                sum = line;
+                firstRun = false;
+            }
+            else{
+                //reverse the line
+                reverse(line);
+                //in every line
+                int i = sum.length() - 1;
+                int j = line.length() - 1;
+                while(i >= 0 && j >=0){
+                    digSum = ((sum[i] - '0') + (line[j] - '0')+ carry);
+                    sum +=(digSum %10+ '0');
+                    carry = digSum/10;
+                    i--;
+                    j--;
+                }
+                //if num2 is smaller add remaining digit of num1 to res
+               while(i >=0){
+                digSum =((sum[i] - '0') + carry);
+                sum +=(digSum%10 + '0');
                 carry = digSum/10;
                 i--;
+               }
+                //if num1 is smaller add remaining digit of num2 to res
+               /*while(j >=0){
+                digSum = ((line[j] - '0') + carry);
+                sum += (digSum%10 + '0');
+                carry = digSum/10;
                 j--;
+               }*/
+                //at last if carry is there add it to res
+               if(carry){
+                sum +=(carry + '0');
+               }
+                //finally reverse res string to get the final sum
+                reverse(sum);
             }
-            //if num2 is smaller add remaining digit of num1 to res
-           while(i >=0){
-            digSum =((sum[i] - '0') + carry);
-            sum +=(digSum%10 + '0');
-            carry = digSum/10;
-            i--;
-           }
-            //if num1 is smaller add remaining digit of num2 to res
-           while(j >=0){
-            digSum = ((line[j] - '0') + carry);
-            sum += (digSum%10 + '0');
-            carry = digSum/10;
-            j--;
-           }
-            //at last if carry is there add it to res
-           if(carry){
-            sum +=(carry + '0');
-           }
-            //finally reverse res string to get the final sum
-            reverse(sum);
         }
     }
     myfile.close();
