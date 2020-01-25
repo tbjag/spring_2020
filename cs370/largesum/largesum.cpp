@@ -17,60 +17,65 @@
 using namespace std;
 
 //reverse string function??
-
+//DOES NOT WORK ON WINDOES
 
 int main(){
+    //sum is reversed
     string sum = "0";
     string line;
     ifstream myfile ("test.txt");
     int carry = 0;
     int digSum = 0;
+    //for testing
+    int count = 0;
 
     if (myfile.is_open()){
         while ( getline (myfile,line) ){
-            int i = sum.length() - 1;
-            //if end of line is not there \n, just sub 1 ISSUE: when no new line
-            int j = line.length() - 2;
-            cout << "i,j : " << i << j << "\n";
-            while(i >= 0 && j >= 0){
-                digSum = sum[i] + line[j] - (2 * '0') + carry;
+            cout << "ITER: " << count << "\n";
+            //reverse the line
+            reverse(line.begin(), line.end());
+            //find the lengths
+            int sum_length = sum.length();
+            // account for \n at end
+            int line_length = line.length();
+            int counter = 0;
+            //continue if both are the same size
+            while(counter < sum_length && counter < line_length){
+                //2 * '0' = 96
+                cout << "hello: " << line[counter] << " " << sum[counter] << "\n";
+                digSum = (line[counter] - '0') + (sum[counter] - '0') + carry;
                 carry = digSum/10;
-                sum[i] = digSum%10 + '0';
-                i--;
-                j--;
+                sum[counter] = digSum%10 + '0';
+                //cout << "sum: " << digSum << counter << "\n";
+                //inc counter
+                counter++;
             }
-            //add carry here if no more chars in sum
-            cout << i << "\n";
-            if(i < 0 && carry > 0){
-                cout << "here" << "\n";
-                sum += carry + '0';
-                carry = 0;
-            }
-            //if digits left over for sum then add
-            while(i >= 0){
-                digSum = sum[i] - '0' + carry;
-                carry = digSum/10;
-                sum[i] = digSum%10 + '0';
-                i--;
-            }
-            //if digits left over in line then add to sum
-            while(j >= 0){
-                digSum = line[j] - '0' + carry;
+            //where check if carry fits?
+            //if line is bigger, add to sum
+            while(counter < line_length){
+                digSum = line[counter] + carry - '0';
                 carry = digSum/10;
                 sum += digSum%10 + '0';
-                j--;
+                counter++;
             }
+            //if sum is bigger add carry to it
+            while(counter < sum_length){
+                digSum = sum[counter] + carry - '0';
+                carry = digSum/10;
+                sum[counter] = digSum%10 + '0';
+                counter++;
+            }
+            if(carry){
+                sum += carry;
+                carry = 0;
+            }
+            count++;
         }
         myfile.close();
-        cout << carry << "\n";
-        if(carry){
-            sum += carry + '0';
-        }
         reverse(sum.begin(), sum.end());
         cout << "sum is: " << sum << "\n";
         return 0;
     }
-        
     else{
         cout << "Unable to open the file";
         return 1;
