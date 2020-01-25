@@ -29,39 +29,44 @@ int main(){
     if (myfile.is_open()){
         while ( getline (myfile,line) ){
             int i = sum.length() - 1;
-            //if end of line is not there \n, just sub 1
+            //if end of line is not there \n, just sub 1 ISSUE: when no new line
             int j = line.length() - 2;
-            //cout<<line[j-1]<<'\n';
-            // if(line.at(j-1) == '\n'){
-            //     cout<<"test"; // not running this line
-            //     j = j-2;
-            // }else{
-            //     j = j-2;
-            // }
-            cout << i << j << "\n";
+            cout << "i,j : " << i << j << "\n";
             while(i >= 0 && j >= 0){
                 digSum = sum[i] + line[j] - (2 * '0') + carry;
                 carry = digSum/10;
-                sum += digSum%10;
+                sum[i] = digSum%10 + '0';
                 i--;
                 j--;
             }
-            if(i > 0){
-                for(i; i > 0; i--){
-                    digSum = sum[i] - '0' + carry;
-                    carry = digSum/10;
-                    sum += digSum%10;
-                }
-            }else{
-                for(j; j > 0; j--){
-                    digSum = line[j] - '0' + carry;
-                    carry = digSum/10;
-                    sum += digSum%10;
-                }
+            //add carry here if no more chars in sum
+            cout << i << "\n";
+            if(i < 0 && carry > 0){
+                cout << "here" << "\n";
+                sum += carry + '0';
+                carry = 0;
+            }
+            //if digits left over for sum then add
+            while(i >= 0){
+                digSum = sum[i] - '0' + carry;
+                carry = digSum/10;
+                sum[i] = digSum%10 + '0';
+                i--;
+            }
+            //if digits left over in line then add to sum
+            while(j >= 0){
+                digSum = line[j] - '0' + carry;
+                carry = digSum/10;
+                sum += digSum%10 + '0';
+                j--;
             }
         }
-
         myfile.close();
+        cout << carry << "\n";
+        if(carry){
+            sum += carry + '0';
+        }
+        reverse(sum.begin(), sum.end());
         cout << "sum is: " << sum << "\n";
         return 0;
     }
@@ -70,5 +75,4 @@ int main(){
         cout << "Unable to open the file";
         return 1;
     }
-    return 0;
 }
