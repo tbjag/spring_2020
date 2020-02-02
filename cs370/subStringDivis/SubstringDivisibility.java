@@ -37,23 +37,37 @@ class SubstringDivisibility{
     }
 
     //find the largest mobile int
-    public static int findLargestMobileIdx(int[] num, boolean[] dir, int n){
+    public static int findLargestMobileIdx(int[] arr, boolean[] dir, int n){
         int i;
-        //forloop bounded 1 to n-1 instead of 0 to n
-        for(i = 1; i < n-1; i++){
-            //look left?
-            if(){
+        int mobile = -1;
+        //maybe bound for loop???? -- check later
+        for(i = 0; i < n; i++){
+            //look in direction of bool arr and check size
+            if(dir[i] == RIGHT_TO_LEFT && arr[i-1] < arr[i] && mobile < arr[i] && i != 0){
+                mobile = arr[i];
+                //look the other direction
+            } else if(dir[i] == LEFT_TO_RIGHT && arr[i+1] < arr[i] && mobile < arr[i] && i != n-1){
+                mobile = arr[i];
+            }
 
+        }
+        //find the highest index and return
+        for(i = 0; i < n; i++){
+            if(i == mobile){
+                return i;
             }
         }
-
-
         return 0;
     }
     
     //finds the permutations
-    public static void onePermutation(int[] num, boolean[] direction, int n){
-        //
+    public static void onePermutation(int[] arr, boolean[] direction, int n){
+        //find the largest mobile int pos
+        int mobilePos = findLargestMobileIdx(arr, direction, n);
+        //pointing to left
+        if(direction[mobilePos] == RIGHT_TO_LEFT){
+            //swap
+        }
     }
 
 
@@ -83,6 +97,8 @@ class SubstringDivisibility{
         for(i = 0 ; i < numSize; i++){
             direction[i] = RIGHT_TO_LEFT;
         }
+        //check the first permutation and add to sum if it hits reqs
+        panCheck(buf);
         //generate permutations and build sum
         for(i = 0; i < factorial(numSize); i++){
             onePermutation(buf, direction, numSize);
