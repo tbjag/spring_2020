@@ -13,13 +13,13 @@ __global__ void matAdd(double *a, double *b, double *c, int n)
         c[id] = a[id] + b[id];
 }
 
-// CUDA Function. Each thread adds a whole row.
+// CUDA Kernel. Each thread adds a whole row.
 __global__ void matAddRow(){
 	// Get our global thread ID
     int id = blockIdx.x*blockDim.x+threadIdx.x;
 }
 
-// CUDA Function. Each thread adds a whole column.
+// CUDA Kernel. Each thread adds a whole column.
 __global__ void matAddCol(){
 	// Get our global thread ID
     int id = blockIdx.x*blockDim.x+threadIdx.x;
@@ -27,8 +27,10 @@ __global__ void matAddCol(){
  
 int main( int argc, char* argv[] )
 {
-    // Size of matrices
+    // Size of matrices col * row
     int n = 1024;
+	//how many data points there are 1024*1024
+	int ns = 1048576;
  
     // Host input matrix
     double *h_a;
@@ -43,7 +45,7 @@ int main( int argc, char* argv[] )
     double *d_c;
  
     // Size, in bytes, of each matrix
-    size_t bytes = n*n*sizeof(double);
+    size_t bytes = ns*sizeof(double);
  
     // Allocate memory for each matrix on host
     h_a = (double*)malloc(bytes);
@@ -58,8 +60,9 @@ int main( int argc, char* argv[] )
     int i;
     // Initialize matrix on host
 	// Simple initialize for now
-    for( i = 0; i < n*n; i++ ) {
+    for( i = 0; i < ns; i++ ) {
 		h_a[i] = 1;
+		h_b[i] = 1;
     }
  
     // Copy host vectors to device
@@ -71,8 +74,8 @@ int main( int argc, char* argv[] )
     // Number of threads in each thread block
     blockSize = 1024;
  
-    // Number of thread blocks in grid
-    gridSize = (int)ceil((float)n/blockSize);
+    // Number of thread blocks in grid 1024
+    gridSize = (int)ceil((float)ns/blockSize);
  
     // Execute the kernel
     vecAdd<<<gridSize, blockSize>>>(d_a, d_b, d_c, n);
@@ -81,11 +84,15 @@ int main( int argc, char* argv[] )
     cudaMemcpy( h_c, d_c, bytes, cudaMemcpyDeviceToHost );
  
     // Sum up vector c and print result divided by n, this should equal 1 within error
-    double sum = 0;
-    for(i=0; i<n; i++)
-        sum += h_c[i];
-    printf("final result: %f\n", sum/(double)n);
- 
+	//print out 5x5 
+	int j;
+    for(i=0; i < n*5 ; i*n){
+		for(j = 0; j < 5; j++){
+			printf("%d ", h_c[i + j]);
+		}
+		cout << "\n";
+	}
+    
     // Release device memory
     cudaFree(d_a);
     cudaFree(d_b);
