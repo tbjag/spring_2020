@@ -7,7 +7,7 @@ import math
 
 data = {}
 
-n = 20
+n = 100
 s_mean = 2
 std = 9
 
@@ -17,7 +17,7 @@ def getSample(i):
 
 
 
-with open('hw2.csv', mode = '+w') as csv_file:
+with open('hw2_100.csv', mode = '+w') as csv_file:
     fieldnames = ['equation1', 'equation2']
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
