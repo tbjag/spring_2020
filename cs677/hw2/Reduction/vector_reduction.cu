@@ -140,9 +140,34 @@ runTest( int argc, char** argv)
 // Note: float* h_data is both the input and the output of this function.
 float computeOnDevice(float* h_data, int num_elements)
 {
+	// declare device vector 
+	float *d_data;
 	
-  // placeholder
-  return 0.0f;
+	// calc number of bytes
+	size_t bytes = num_elements * sizeof(float);
+	
+	// malloc on device
+	cudaMalloc(&d_data, bytes);
+	
+	// copy data to device
+	cudaMemcpy( d_data, h_data, bytes, cudaMemcpyHostToDevice);
+	
+	int block_size, grid_size;
+	
+	//calc block size and grid size
+	
+	
+	//send function over to device
+	reduction<<<grid_size, block_size >>>(d_data, num_elements);
+	
+	// Copy result back to host
+    cudaMemcpy( h_data, d_data, bytes, cudaMemcpyDeviceToHost );
+	
+	// release memory
+	cudaFree(d_data);
+	
+	// placeholder
+	return 0.0f;
 
 }
      
