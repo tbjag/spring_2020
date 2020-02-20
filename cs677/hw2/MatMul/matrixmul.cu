@@ -106,8 +106,7 @@ int main(int argc, char** argv) {
         
   printf("CPU computation complete\n");
   // in this case check if the result is equivalent to the expected soluion
-  bool res = nocutComparefe(reference.elements, P.elements, 
-			    P.height*P.width, 0.001f);
+  bool res = compareData(reference.elements, P.elements, P.height*P.width);
   printf("Test %s\n", (1 == res) ? "PASSED" : "FAILED");
     
   if(argc == 5)

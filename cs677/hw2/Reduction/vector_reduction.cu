@@ -94,7 +94,7 @@ runTest( int argc, char** argv)
     // * One argument: Read the input data array from the given file.
     switch(argc-1)
     {      
-        /* --Make your own--
+        
         case 1:  // One Argument
             errorM = readFile(argv[1], h_data);
             if(errorM != 1)
@@ -103,7 +103,7 @@ runTest( int argc, char** argv)
                 exit(1);
             }
         break;
-        */
+        
         
         default:  // No Arguments or one argument
             // initialize the input data on the host to be integer values
@@ -135,12 +135,12 @@ runTest( int argc, char** argv)
 
 // **===----------------- Modify this function ---------------------===**
 // Take h_data from host, copies it to device, setup grid and thread 
-// dimentions, excutes kernel function, and copy result of scan back
+// dimentions, executes kernel function, and copy result of scan back
 // to h_data.
 // Note: float* h_data is both the input and the output of this function.
 float computeOnDevice(float* h_data, int num_elements)
 {
-
+	
   // placeholder
   return 0.0f;
 
