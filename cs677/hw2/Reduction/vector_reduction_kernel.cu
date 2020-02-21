@@ -46,8 +46,16 @@
 // **===------------------------------------------------------------------===**
 __global__ void reduction(float *g_data, int n)
 {
+	__shared __ float partial_sum[];
+	//find id
+	unsigned int t = threadIdx.x;
 	
-
+	for(unsigned int stride = blockDim.x/2; stride > 0; stride >>= 1){
+		__syncthreads();
+		if(t < stride)
+			partial_sum[t] += partial_sum[t+stride];
+	}
+	
 
 }
 

@@ -155,7 +155,8 @@ float computeOnDevice(float* h_data, int num_elements)
 	int block_size, grid_size;
 	
 	//calc block size and grid size
-	
+	block_size = 256;
+	gridSize = (int)ceil((num_elements/2)/(float)blockSize);
 	
 	//send function over to device
 	reduction<<<grid_size, block_size >>>(d_data, num_elements);
