@@ -156,19 +156,23 @@ float computeOnDevice(float* h_data, int num_elements)
 	
 	//calc block size and grid size
 	block_size = 256;
-	gridSize = (int)ceil((num_elements/2)/(float)blockSize);
+	grid_size = (int)ceil((num_elements/2)/(float)block_size);
+	printf("%d\n", grid_size);
 	
 	//send function over to device
 	reduction<<<grid_size, block_size >>>(d_data, num_elements);
 	
 	// Copy result back to host
-    cudaMemcpy( h_data, d_data, bytes, cudaMemcpyDeviceToHost );
+	cudaMemcpy( h_data, d_data, bytes, cudaMemcpyDeviceToHost );
+	
+	// print out result
+	printf("%lf\n", h_data[0]);
 	
 	// release memory
 	cudaFree(d_data);
 	
-	// placeholder
-	return 0.0f;
+	// return single point
+	return h_data[0];
 
 }
      
