@@ -44,12 +44,12 @@
 //                  result is expected in index 0 of g_idata
 //! @param n        input number of elements to scan from input data
 // **===------------------------------------------------------------------===**
-__global__ void reduction(float *g_data, int n)
+__global__ void reduction_adv(float *g_data, int n)
 {
 	__shared__ float partial_sum[NUM_ELEMENTS];
 	
 	//find id
-	unsigned int t = threadIdx.x;
+	unsigned int t = blockIdx.x*blockDim.x+threadIdx.x;
 	
 	//load from global into shared mem, do the first computation
 	partial_sum[t] = g_data[t] + g_data[t + NUM_ELEMENTS/2];

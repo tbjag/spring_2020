@@ -52,9 +52,11 @@
 
 // includes, kernels
 #include <vector_reduction_kernel.cu>
+//#include <vector_reduction_kernel_adv.cu>
 
 // For simplicity, just to get the idea in this MP, we're fixing the problem size to 512 elements.
 #define NUM_ELEMENTS 512
+#define BLOCK_SIZE 32
 
 ////////////////////////////////////////////////////////////////////////////////
 // declaration, forward
@@ -140,6 +142,14 @@ runTest( int argc, char** argv)
 // Note: float* h_data is both the input and the output of this function.
 float computeOnDevice(float* h_data, int num_elements)
 {
+	// num is zero or 1 just return solution
+	if(num_elements == 0)
+		return 0.0f;
+	else if (num_elements == 1)
+		return h_data[0];
+	else if (num_elements % 2 != 0)
+		num_elements += 1; //will just have a 0 at the end
+	
 	// declare device vector 
 	float *d_data;
 	
@@ -152,21 +162,36 @@ float computeOnDevice(float* h_data, int num_elements)
 	// copy data to device
 	cudaMemcpy( d_data, h_data, bytes, cudaMemcpyHostToDevice);
 	
-	int block_size, grid_size;
+	int block_size, grid_size, half_elements;
 	
-	//calc block size and grid size
-	block_size = 256;
-	grid_size = (int)ceil((num_elements/2)/(float)block_size);
-	printf("%d\n", grid_size);
+	//calc block size and grid size 
+	//block_size = 256;
+	//grid_size = (int)ceil((num_elements/2)/(float)block_size);
+	//block_size = num_elements/2;
+	//grid_size = (int)ceil();
+	half_elements = num_elements/2;
 	
-	//send function over to device
-	reduction<<<grid_size, block_size >>>(d_data, num_elements);
-	
+	printf("%d\n", block_size);
+	//send to appropriate function 
+	if(num_elements <= 512){
+		//appropriate block size 
+		block_size = (half_elements) % 32 == 0 ? half_elements : half_elements + (BLOCK_SIZE - half_elements%BLOCK_SIZE); 
+		reduction<<<1, block_size >>>(d_data, num_elements);
+	} else{
+		//work on this
+		block_size = 256;
+		//grid_size = (int)ceil((num_elements/2)/(float)block_size);
+		//reduction_adv<<<grid_size, block_size >>>(d_data, num_elements);
+	}
+
 	// Copy result back to host
 	cudaMemcpy( h_data, d_data, bytes, cudaMemcpyDeviceToHost );
 	
 	// print out result
-	printf("%lf\n", h_data[0]);
+	for(int i = 0; i < NUM_ELEMENTS; i++){
+		printf("%lf ", h_data[i]);
+	}
+	printf("\n");
 	
 	// release memory
 	cudaFree(d_data);
