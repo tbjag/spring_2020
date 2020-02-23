@@ -178,10 +178,11 @@ float computeOnDevice(float* h_data, int num_elements)
 		block_size = (half_elements) % 32 == 0 ? half_elements : half_elements + (BLOCK_SIZE - half_elements%BLOCK_SIZE); 
 		reduction<<<1, block_size >>>(d_data, num_elements);
 	} else{
-		//work on this
-		block_size = 256;
-		//grid_size = (int)ceil((num_elements/2)/(float)block_size);
-		//reduction_adv<<<grid_size, block_size >>>(d_data, num_elements);
+		//default block size if greater than
+		block_size = 512;
+		//divide by 2 times block size
+		grid_size = (int)ceil(num_elements/(float)(block_size*2));
+		reduction_adv<<<grid_size, block_size >>>(d_data, num_elements);
 	}
 
 	// Copy result back to host
