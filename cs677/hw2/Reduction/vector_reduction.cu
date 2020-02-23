@@ -83,7 +83,8 @@ main( int argc, char** argv)
 void
 runTest( int argc, char** argv) 
 {
-    int num_elements = NUM_ELEMENTS;
+	//changed num_elements to 2nd arg
+    int num_elements = 8;
     int errorM = 0;
 
     const unsigned int array_mem_size = sizeof( float) * num_elements;
@@ -154,7 +155,7 @@ float computeOnDevice(float* h_data, int num_elements)
 	float *d_data;
 	
 	// calc number of bytes
-	size_t bytes = num_elements * sizeof(float);
+	size_t bytes = (num_elements * sizeof(float);
 	
 	// malloc on device
 	cudaMalloc(&d_data, bytes);
@@ -164,32 +165,32 @@ float computeOnDevice(float* h_data, int num_elements)
 	
 	int block_size, grid_size, half_elements;
 	
-	//calc block size and grid size 
-	//block_size = 256;
-	//grid_size = (int)ceil((num_elements/2)/(float)block_size);
-	//block_size = num_elements/2;
-	//grid_size = (int)ceil();
 	half_elements = num_elements/2;
 	
-	printf("%d\n", block_size);
 	//send to appropriate function 
 	if(num_elements <= 512){
 		//appropriate block size 
-		block_size = (half_elements) % 32 == 0 ? half_elements : half_elements + (BLOCK_SIZE - half_elements%BLOCK_SIZE); 
+		block_size = (half_elements) % 32 == 0 ? half_elements : half_elements + (BLOCK_SIZE - half_elements%BLOCK_SIZE);
+		printf("%d \n", block_size);
 		reduction<<<1, block_size >>>(d_data, num_elements);
 	} else{
-		//default block size if greater than
-		block_size = 512;
-		//divide by 2 times block size
-		grid_size = (int)ceil(num_elements/(float)(block_size*2));
+		//default block size if greater than 512
+		//block_size = (half_elements) % 32 == 0 ? half_elements : half_elements + (BLOCK_SIZE - half_elements%BLOCK_SIZE); 
+		block_size = 256;
+		grid_size = (int)ceil((float)half_elements/block_size);
 		reduction_adv<<<grid_size, block_size >>>(d_data, num_elements);
 	}
 
 	// Copy result back to host
 	cudaMemcpy( h_data, d_data, bytes, cudaMemcpyDeviceToHost );
 	
+	//TEST
+	//for(int i = 512; i < num_elements; i += 512){
+		//h_data[0] += h_data[i];
+	//}
+	
 	// print out result
-	for(int i = 0; i < NUM_ELEMENTS; i++){
+	for(int i = 0; i < num_elements; i++){
 		printf("%lf ", h_data[i]);
 	}
 	printf("\n");

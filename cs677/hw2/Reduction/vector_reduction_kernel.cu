@@ -56,8 +56,9 @@ __global__ void reduction(float *g_data, int n)
 	
 	for(unsigned int stride = blockDim.x/2; stride >= 1; stride >>= 1){
 		__syncthreads();
-		if(t < stride)
+		if(t < stride && t + stride < n)
 			partial_sum[t] += partial_sum[t+stride];
+		else if (
 	}
 
 	//put result into global
@@ -67,8 +68,9 @@ __global__ void reduction(float *g_data, int n)
 
 __global__ void reduction_adv(float *g_data, int n)
 {
+	const int half = NUM_ELEMENTS/2;
 	// store results in here from first access
-	__shared__ float partial_sum[NUM_ELEMENTS];
+	__shared__ float partial_sum[half];
 	
 	//find id
 	unsigned int t = threadIdx.x;
@@ -76,20 +78,20 @@ __global__ void reduction_adv(float *g_data, int n)
 	//find start of part in array
 	unsigned int start = NUM_ELEMENTS*blockIdx.x;
 	
-	//add the two elements from global
-	partial_sum[t] = g_data[t + start] + g_data[t+ start + NUM_ELEMENTS];
-	
-	for(unsigned int stride = blockDim.x/2; stride >= 1; stride >>= 1){
-		__syncthreads();
-		if(t < stride)
-			partial_sum[t] += partial_sum[t+stride];
-	}
-	if(t < 1)
-		g_data[t] = partial_sum[t];
-
-	//put result into global
-	if(t < 1)
-		g_data[t] = partial_sum[t];
+	//for(unsigned int stride_layer = NUM_ELEMENTS; stride_layer <  gridDim.x;  <<= 1){
+		//add the two elements from global -- hardest part
+		partial_sum[t] = g_data[t + start] + g_data[t+ start + NUM_ELEMENTS];
+		
+		//for loop within 
+		for(unsigned int stride = half; stride >= 1; stride >>= 1){
+			__syncthreads();
+			if(t < stride)
+				partial_sum[t] += partial_sum[t+stride];
+		}
+		// put result into global mem
+		if(t < 1)
+			g_data[t] = partial_sum[t];
+	//}
 }
 
 #endif // #ifndef _SCAN_NAIVE_KERNEL_H_
