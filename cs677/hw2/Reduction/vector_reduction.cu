@@ -84,7 +84,7 @@ void
 runTest( int argc, char** argv) 
 {
 	//changed num_elements to 2nd arg
-    int num_elements = 8;
+    int num_elements = 513;
     int errorM = 0;
 
     const unsigned int array_mem_size = sizeof( float) * num_elements;
@@ -155,7 +155,7 @@ float computeOnDevice(float* h_data, int num_elements)
 	float *d_data;
 	
 	// calc number of bytes
-	size_t bytes = (num_elements * sizeof(float);
+	size_t bytes = (num_elements * sizeof(float));
 	
 	// malloc on device
 	cudaMalloc(&d_data, bytes);
@@ -163,31 +163,38 @@ float computeOnDevice(float* h_data, int num_elements)
 	// copy data to device
 	cudaMemcpy( d_data, h_data, bytes, cudaMemcpyHostToDevice);
 	
-	int block_size, grid_size, half_elements;
-	
-	half_elements = num_elements/2;
+	int block_size, grid_size;
+	block_size = 512;
 	
 	//send to appropriate function 
-	if(num_elements <= 512){
-		//appropriate block size 
-		block_size = (half_elements) % 32 == 0 ? half_elements : half_elements + (BLOCK_SIZE - half_elements%BLOCK_SIZE);
-		printf("%d \n", block_size);
+	if(num_elements == 512){
 		reduction<<<1, block_size >>>(d_data, num_elements);
+	} else if (num_elements > 512){
+		//find the layer
+		int layer = 0, temp = 1;
+		while(temp < num_elements){
+			temp <<= 9;
+			layer++;
+		}
+		temp >>= 9;
+		grid_size = num_elements;
+		for(int i = 0; i < layer; i++){
+			grid_size /= block_size;
+			reduction_adv<<<grid_size, block_size >>>(d_data, num_elements, i, temp);
+		}
+		
 	} else{
-		//default block size if greater than 512
-		//block_size = (half_elements) % 32 == 0 ? half_elements : half_elements + (BLOCK_SIZE - half_elements%BLOCK_SIZE); 
-		block_size = 256;
-		grid_size = (int)ceil((float)half_elements/block_size);
-		reduction_adv<<<grid_size, block_size >>>(d_data, num_elements);
+		int exp_less_2 = 1;
+		while(exp_less_2 < num_elements){
+			exp_less_2 <<= 1;
+		}
+		exp_less_2 >>= 1;
+		printf("%d\n", exp_less_2);
+		reduction_less<<<1, block_size >>>(d_data, num_elements, exp_less_2);
 	}
 
 	// Copy result back to host
 	cudaMemcpy( h_data, d_data, bytes, cudaMemcpyDeviceToHost );
-	
-	//TEST
-	//for(int i = 512; i < num_elements; i += 512){
-		//h_data[0] += h_data[i];
-	//}
 	
 	// print out result
 	for(int i = 0; i < num_elements; i++){

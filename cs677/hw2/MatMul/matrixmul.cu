@@ -142,6 +142,7 @@ void MatrixMulOnDevice(const Matrix M, const Matrix N, Matrix P)
   CopyToDeviceMatrix(Pd, P); // Clear memory
 
   // Setup the execution configuration
+  
  
   // Launch the device computation threads!
 
