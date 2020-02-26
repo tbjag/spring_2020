@@ -45,7 +45,7 @@
 #include "file_io.h"
 
 // includes, kernels
-//#include <matrixmul_kernel.cu>
+#include <matrixmul_kernel.cu>
 
 ////////////////////////////////////////////////////////////////////////////////
 // declarations, forward
@@ -142,9 +142,13 @@ void MatrixMulOnDevice(const Matrix M, const Matrix N, Matrix P)
   CopyToDeviceMatrix(Pd, P); // Clear memory
 
   // Setup the execution configuration
+  // need the size M.width = N.height 
+  // p size = M.height * N.width
+  
   
  
   // Launch the device computation threads!
+  MatrixMulKernel<<<grid_size, block_size >>> (params);
 
   // Read P from the device
   CopyFromDeviceMatrix(P, Pd); 

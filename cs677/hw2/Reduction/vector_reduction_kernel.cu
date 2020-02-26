@@ -84,8 +84,6 @@ __global__ void reduction_adv(float *g_data, int n, int layer, int exp_2_less) /
 
 __global__ void reduction_less(float *g_data, int n, int exp_2_less)
 {
-	//__shared__ float partial_sum[NUM_ELEMENTS/2];
-	
 	//find id
 	unsigned int t = threadIdx.x;
 	

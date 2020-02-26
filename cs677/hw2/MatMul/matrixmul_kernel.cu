@@ -43,6 +43,9 @@
 #include <stdio.h>
 #include "matrixmul.h"
 
+//change tile width
+#define TILE_WIDTH 256
+
 ////////////////////////////////////////////////////////////////////////////////
 //! Simple test kernel for device functionality
 //! @param g_idata  input data in global memory
@@ -51,8 +54,32 @@
 // Matrix multiplication kernel thread specification
 __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 {
-
-
+	__shared__ float m_local_shared[TILE_WIDTH][TILE_WIDTH];
+	__shared__ float n_local_shared[TILE_WIDTH][TILE_WIDTH];
+	
+	int bx = blockIdx.x; int by = blockIdx.y; 
+	int tx = threadIdx x; int ty = threadIdx.y;
+	
+	//identifies which tile in section you are working in
+	int row = by*TILE_WIDTH + ty;
+	int col = bx*TILE_WIDTH + tx;
+	
+	int intermediate_val = 0;
+	int num_of_tiles = (int)ceil((float)n.height/TILE_WIDTH);//go above limit? m.width = n.height 
+	
+	for(int count = 0; count < num_of_tiles; count++){
+		m_local_shared[ty][tx] = M[row*M.width + (count*TILE_WIDTH + tx)]; //find the right section for m!
+		n_local_shared[ty][tx] = N[(count*TILE_WIDTH + ty)*N.width + col]; //find the right section for n!
+		
+		__syncthreads();
+		
+		for(int k =0; k < TILE_WIDTH; k++)
+			intermediate_val += m_local_shared[ty][k] * n_local_shared[k][tx];
+		
+		__syncthreads();
+	}
+	
+	P[row*M.width + col] = intermediate_val;
 }
 
 #endif // #ifndef _MATRIXMUL_KERNEL_H_
