@@ -56,7 +56,7 @@
 
 // For simplicity, just to get the idea in this MP, we're fixing the problem size to 512 elements.
 #define NUM_ELEMENTS 512
-#define BLOCK_SIZE 32
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // declaration, forward
@@ -84,7 +84,7 @@ void
 runTest( int argc, char** argv) 
 {
 	//changed num_elements to 2nd arg
-    int num_elements = 513;
+    int num_elements = 2047;
     int errorM = 0;
 
     const unsigned int array_mem_size = sizeof( float) * num_elements;
@@ -171,18 +171,20 @@ float computeOnDevice(float* h_data, int num_elements)
 		reduction<<<1, block_size >>>(d_data, num_elements);
 	} else if (num_elements > 512){
 		//find the layer
-		int layer = 0, temp = 1;
+		int layer = -1, temp = 1;
 		while(temp < num_elements){
 			temp <<= 9;
 			layer++;
 		}
 		temp >>= 9;
+		printf("temp: %d, layer: %d \n", temp, layer);
 		grid_size = num_elements;
 		for(int i = 0; i < layer; i++){
+			//resize grid every layer
 			grid_size /= block_size;
+			//run kernel on decreasing layers, increasing the stride
 			reduction_adv<<<grid_size, block_size >>>(d_data, num_elements, i, temp);
 		}
-		
 	} else{
 		int exp_less_2 = 1;
 		while(exp_less_2 < num_elements){

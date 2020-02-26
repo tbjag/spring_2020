@@ -145,10 +145,14 @@ void MatrixMulOnDevice(const Matrix M, const Matrix N, Matrix P)
   // need the size M.width = N.height 
   // p size = M.height * N.width
   
+  // define variables
+  int block_size, grid_size;
   
- 
+  block_size = 256;
+  grid_size = (int)ceil((float)M.height/block_size);
+  
   // Launch the device computation threads!
-  MatrixMulKernel<<<grid_size, block_size >>> (params);
+  MatrixMulKernel<<<grid_size, block_size >>> (M, N, P);
 
   // Read P from the device
   CopyFromDeviceMatrix(P, Pd); 

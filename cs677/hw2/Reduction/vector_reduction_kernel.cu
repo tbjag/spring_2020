@@ -69,16 +69,16 @@ __global__ void reduction_adv(float *g_data, int n, int layer, int exp_2_less) /
 {
 	//find id
 	unsigned int t = threadIdx.x;
+	unsigned int layer_num = NUM_ELEMENTS^layer;
 	
 	//load from global into shared mem, do the first computation
-	if(t < exp_2_less && n > t * 512^layer)
-		g_data[t*512^layer] += g_data[t*512^layer + exp_2_less * 512^layer];
+	if(t < exp_2_less && t + exp_2_less < n) //change: add only if to if goes over stride
+		g_data[t * layer_num] += g_data[t * layer_num + exp_2_less * layer_num]; //something wrong here 
 	
-	for(unsigned int stride = exp_2_less/2; stride >= 1; stride >>= 1){ //n/2 doesnt work
+	for(unsigned int stride = exp_2_less/2; stride >= 1; stride >>= 1){
 		__syncthreads();
 		if(t < stride)
-			//partial_sum[t] += partial_sum[t+stride];
-			g_data[t] += g_data[t%12^layer+stride*512^layer];
+			g_data[t] += g_data[t * layer_num + stride * layer_num];
 	}
 }
 

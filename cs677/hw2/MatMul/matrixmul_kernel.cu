@@ -64,22 +64,26 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 	int row = by*TILE_WIDTH + ty;
 	int col = bx*TILE_WIDTH + tx;
 	
-	int intermediate_val = 0;
+	int temp_val = 0;
 	int num_of_tiles = (int)ceil((float)n.height/TILE_WIDTH);//go above limit? m.width = n.height 
 	
 	for(int count = 0; count < num_of_tiles; count++){
-		m_local_shared[ty][tx] = M[row*M.width + (count*TILE_WIDTH + tx)]; //find the right section for m!
-		n_local_shared[ty][tx] = N[(count*TILE_WIDTH + ty)*N.width + col]; //find the right section for n!
-		
-		__syncthreads();
-		
-		for(int k =0; k < TILE_WIDTH; k++)
-			intermediate_val += m_local_shared[ty][k] * n_local_shared[k][tx];
-		
-		__syncthreads();
+		int m_find = row*M.width + (count*TILE_WIDTH + tx);
+		int n_find = (count*TILE_WIDTH + ty)*N.width + col;
+		if(m_find < M.height * M.width && n_find < N.height * N.width){ // check if in bounds
+			m_local_shared[ty][tx] = M[m_find]; //find the right section for m!
+			n_local_shared[ty][tx] = N[n_find]; //find the right section for n!
+			
+			__syncthreads();
+			
+			for(int k =0; k < TILE_WIDTH; k++)
+				temp_val += m_local_shared[ty][k] * n_local_shared[k][tx];
+			
+			__syncthreads();
+		}
 	}
 	
-	P[row*M.width + col] = intermediate_val;
+	P[row*M.width + col] = temp_val;
 }
 
 #endif // #ifndef _MATRIXMUL_KERNEL_H_
