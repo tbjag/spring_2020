@@ -44,7 +44,7 @@
 #include "matrixmul.h"
 
 //change tile width
-#define TILE_WIDTH 256
+#define TILE_WIDTH 16
 
 ////////////////////////////////////////////////////////////////////////////////
 //! Simple test kernel for device functionality
@@ -54,6 +54,7 @@
 // Matrix multiplication kernel thread specification
 __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 {
+	// create shared memory space to store used vals
 	__shared__ float m_local_shared[TILE_WIDTH][TILE_WIDTH];
 	__shared__ float n_local_shared[TILE_WIDTH][TILE_WIDTH];
 	
@@ -65,9 +66,9 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 	int col = bx*TILE_WIDTH + tx;
 	
 	int temp_val = 0;
-	int num_of_tiles = (int)ceil((float)n.height/TILE_WIDTH);//go above limit? m.width = n.height 
+	//go above limit? m.width = n.height 
 	
-	for(int count = 0; count < num_of_tiles; count++){
+	for(int count = 0; count < M.width/TILE_WIDTH; count++){
 		int m_find = row*M.width + (count*TILE_WIDTH + tx);
 		int n_find = (count*TILE_WIDTH + ty)*N.width + col;
 		if(m_find < M.height * M.width && n_find < N.height * N.width){ // check if in bounds
