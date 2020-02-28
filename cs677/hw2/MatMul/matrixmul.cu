@@ -146,14 +146,13 @@ void MatrixMulOnDevice(const Matrix M, const Matrix N, Matrix P)
   // p size = M.height * N.width
   
   // define variables
-  int block_size, grid_size;
+  int tile_size, grid_size;
   
-  block_size = 256;
-  grid_size = (int)ceil((float)(M.width^2)/block_size);
+  tile_size = 16;
   
   // make 2D
-  dim3 dim_block (block_size, block_size);
-  dim3 dim_grid (grid_size, grid_size);
+  dim3 dim_block (tile_size, tile_size);
+  dim3 dim_grid ((int)ceil((float)M.width/tile_size), (int)ceil((float)N.height/tile_size));
   
   // Launch the device computation threads!
   MatrixMulKernel<<<dim_grid, dim_block >>> (M, N, P);
