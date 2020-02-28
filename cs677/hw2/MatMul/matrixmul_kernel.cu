@@ -52,28 +52,28 @@
 //! @param g_odata  output data in global memory
 ////////////////////////////////////////////////////////////////////////////////
 // Matrix multiplication kernel thread specification
-__global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
+__global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P, int num_tiles, int n_size, int m_size)
 {
 	// create shared memory space to store used vals
 	__shared__ float m_local_shared[TILE_WIDTH][TILE_WIDTH];
 	__shared__ float n_local_shared[TILE_WIDTH][TILE_WIDTH];
 	
 	int bx = blockIdx.x; int by = blockIdx.y; 
-	int tx = threadIdx x; int ty = threadIdx.y;
+	int tx = threadIdx.x; int ty = threadIdx.y;
 	
-	//identifies which tile in section you are working in
+	//identifies which tile in section you are working in -- correlates to P
 	int row = by*TILE_WIDTH + ty;
 	int col = bx*TILE_WIDTH + tx;
 	
 	int temp_val = 0;
 	//go above limit? m.width = n.height 
 	
-	for(int count = 0; count < M.width/TILE_WIDTH; count++){
-		int m_find = row*M.width + (count*TILE_WIDTH + tx);
-		int n_find = (count*TILE_WIDTH + ty)*N.width + col;
-		if(m_find < M.height * M.width && n_find < N.height * N.width){ // check if in bounds
-			m_local_shared[ty][tx] = M[m_find]; //find the right section for m!
-			n_local_shared[ty][tx] = N[n_find]; //find the right section for n!
+	for(unsigned int count = 0; count < num_tiles; count++){
+		unsigned int m_find = row*M.width + (count*TILE_WIDTH + tx);
+		unsigned int n_find = (count*TILE_WIDTH + ty)*N.width + col;
+		if(m_find < m_size && n_find < n_size){ // check if in bounds
+			m_local_shared[ty][tx] = M.elements[m_find]; //find the right section for m!
+			n_local_shared[ty][tx] = N.elements[n_find]; //find the right section for n!
 			
 			__syncthreads();
 			
@@ -84,7 +84,7 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 		}
 	}
 	
-	P[row*M.width + col] = temp_val;
+	P.elements[row*M.width + col] = temp_val;
 }
 
 #endif // #ifndef _MATRIXMUL_KERNEL_H_

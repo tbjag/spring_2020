@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
   else
     {
       // Allocate and read in matrices from disk
-      int* params = NULL; //(int*)malloc(3 * sizeof(int));
+      int** params = NULL; //(int*)malloc(3 * sizeof(int));
       unsigned int data_read = 3;
       readFile(argv[1], &params, &data_read);
       if(data_read != 3){
@@ -143,19 +143,25 @@ void MatrixMulOnDevice(const Matrix M, const Matrix N, Matrix P)
 
   // Setup the execution configuration
   // need the size M.width = N.height 
-  // p size = M.height * N.width
+  // p size = M.height by N.width
   
   // define variables
-  int tile_size, grid_size;
-  
+  int tile_size, num_tiles, n_size, m_size;
+  //set tile size to 16
   tile_size = 16;
+  //get the number of operations that each tile has to go through
+  num_tiles = (int)ceil((float)M.width/tile_size); 
+  //set sizes that gpu doesnt need to calc every time for bounds
+  m_size = M.width * M.height;
+  n_size = N.width * N.height;
   
-  // make 2D
+  // make 2D 256 threads per block 
   dim3 dim_block (tile_size, tile_size);
-  dim3 dim_grid ((int)ceil((float)M.width/tile_size), (int)ceil((float)N.height/tile_size));
+  //check dim dimensions
+  dim3 dim_grid ((int)ceil((float)M.height/tile_size), (int)ceil((float)N.width/tile_size));
   
   // Launch the device computation threads!
-  MatrixMulKernel<<<dim_grid, dim_block >>> (M, N, P);
+  MatrixMulKernel<<<dim_grid, dim_block >>> (M, N, P, num_tiles, n_size, m_size);
 
   // Read P from the device
   CopyFromDeviceMatrix(P, Pd); 
