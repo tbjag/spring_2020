@@ -65,7 +65,7 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P, int num_tiles, int
 	int row = by*TILE_WIDTH + ty;
 	int col = bx*TILE_WIDTH + tx;
 	
-	int temp_val = 0;
+	float temp_val = 0;
 	
 	for(unsigned int count = 0; count < num_tiles; count++){
 		unsigned int m_find = row*M.width + (count*TILE_WIDTH + tx);

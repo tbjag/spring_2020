@@ -57,6 +57,7 @@ extern "C"
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
 ////////////////////////////////////////////////////////////////////////////////
+
 int main(int argc, char** argv) {
 
   Matrix  M;
@@ -76,7 +77,7 @@ int main(int argc, char** argv) {
   else
     {
       // Allocate and read in matrices from disk
-     /*int** params = NULL; //(int*)malloc(3 * sizeof(int));
+	float* params = NULL; //(int*)malloc(3 * sizeof(int));
       unsigned int data_read = 3;
       readFile(argv[1], &params, &data_read);
       if(data_read != 3){
@@ -94,7 +95,7 @@ int main(int argc, char** argv) {
 	  printf("Error reading input files %d, %d\n", errorM, errorN);
 	  return 1;
 	}
-	*/
+	
     }
 
   // M * N on the device
@@ -254,4 +255,8 @@ void WriteFile(Matrix M, char* file_name)
 {
   writeFile(file_name, M.elements, M.width*M.height ,0.0001f);
 }
+
+
+//mycode
+
 
