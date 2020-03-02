@@ -4,13 +4,11 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include "string.h"
-
+#include "sobel_kernel.cu"
 
 #define DEFAULT_THRESHOLD  8000
 
 #define DEFAULT_FILENAME "BWstop-sign.ppm"
-
-
 
 
 unsigned int *read_ppm( char *filename, int * xsize, int * ysize, int *maxval ){
