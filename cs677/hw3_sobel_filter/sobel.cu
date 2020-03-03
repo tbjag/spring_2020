@@ -7,6 +7,7 @@
 #include "sobel_kernel.cu"
 
 #define DEFAULT_THRESHOLD  8000
+#define SOBEL_SIZE 18
 
 #define DEFAULT_FILENAME "BWstop-sign.ppm"
 
@@ -192,11 +193,39 @@ int main( int argc, char **argv )
 	}
 
 	write_ppm( "result8000gold.ppm", xsize, ysize, 255, result);
+	fprintf(stderr, "sobel CPU done\n"); 
 
-
-    // TO-DO: de-allocate !!!!
-
-	fprintf(stderr, "sobel done\n"); 
-
+    // TO-DO: deallocate res and pic
+	
+	//Set up vars
+	int *d_pic, *d_res;
+	int block_size;
+									
+	// Malloc on device
+	cudaMalloc(&d_pic, numbytes);
+	cudaMalloc(&d_res, numbytes);
+	
+	// Copy data to device
+	cudaMemcpy( d_pic, pic, numbytes, cudaMemcpyHostToDevice);
+	
+	block_size = 16;
+	dim3 dim_block (block_size, block_size);
+	dim3 dim_grid ((int)ceil((float)xsize/block_size), (int)ceil((float)ysize/block_size));
+	
+	// Run kernel 
+	sobel_filter<<< dim_grid, dim_block >>> (d_pic, d_res, xsize, ysize, thresh);
+	
+	// Copy result back to host
+	cudaMemcpy( res, d_res, numbytes, cudaMemcpyDeviceToHost);
+	
+	// Free vars
+	free(pic);
+	free(res);
+	cudaFree(d_pic);
+	cudaFree(d_res);
+	
+	// Write to output
+	write_ppm( "result8000gpu.ppm", xsize, ysize, 255, result);
+	fprintf(stderr, "sobel GPU done\n"); 
 }
 
