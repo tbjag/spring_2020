@@ -1,13 +1,11 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include "string.h"
-#include "sobel_kernel.cu"
 
 #define DEFAULT_THRESHOLD  8000
 #define SOBEL_SIZE 18
+#define TILE_SIZE 16
 
 #define DEFAULT_FILENAME "BWstop-sign.ppm"
 
@@ -133,7 +131,44 @@ void write_ppm( char *filename, int xsize, int ysize, int maxval, int *pic)
 	fclose(fp);
 }
 
+__global__ void sobel_filter(int *inputM, int *outputM, int width, int height, int thresh){
+	// shared 16x16
+	__shared__ int local[TILE_SIZE][TILE_SIZE];
+	
+	//set up vars, leave 1 px border
+	int tx = threadIdx.x; int ty = threadIdx.y;
+	//find positions within input array for 14x14
+	int row = blockIdx.x * (blockDim.x-2) + tx + 1; 
+	int col = blockIdx.y * (blockDim.y-2) + ty + 1;
+	
+	//correct to the right place in input
+	int place = (row-1)*width + col - 1;
 
+	//if in bounds of pic -- check?
+	if(place < height*width){
+		//store into shared
+		local[tx][ty] = inputM[place];
+		//find inner part of 14x14
+		if(tx > 0 && tx < 15 && ty > 0 && ty < 15){
+			//reuse vars
+			int top_left = local[tx-1][ty-1], top_right = local[tx+1][ty-1];
+			int bot_left = local[tx-1][ty+1], bot_right = local[tx+1][ty+1];
+			int gx = top_left - top_right + 2*local[tx-1][ty] - 2*local[tx+1][ty] + bot_left - bot_right;
+			int gy = top_left + 2*local[tx][ty-1] + top_right - bot_left - 2*local[tx][ty+1] - bot_right;
+			
+			// calculate magnitude
+			int magnitude = gx*gx + gy*gy;
+			int result = 0;
+			
+			// Check if greater than threshold
+			if(magnitude > thresh)
+				result = 255;
+			
+			// store into global -- hceck?
+			outputM[] = result;  
+		}
+	}
+}
 
 
 int main( int argc, char **argv )
@@ -156,7 +191,7 @@ int main( int argc, char **argv )
 	int xsize, ysize, maxval;
 	unsigned int *pic = read_ppm( filename, &xsize, &ysize, &maxval ); 
 	
-	int numbytes =  xsize * ysize * 3 * sizeof( int );
+	int numbytes =  xsize * ysize * sizeof( int );//gets RID OF 3 *
 	int *result = (int *) malloc( numbytes );
 	if (!result) { 
 		fprintf(stderr, "sobel() unable to malloc %d bytes\n", numbytes);
@@ -210,17 +245,17 @@ int main( int argc, char **argv )
 	
 	block_size = 16;
 	dim3 dim_block (block_size, block_size);
-	dim3 dim_grid ((int)ceil((float)xsize/block_size), (int)ceil((float)ysize/block_size));
+	dim3 dim_grid ((int)ceil((float)xsize/(block_size-2)), (int)ceil((float)ysize/(block_size-2)));
 	
 	// Run kernel 
 	sobel_filter<<< dim_grid, dim_block >>> (d_pic, d_res, xsize, ysize, thresh);
 	
 	// Copy result back to host
-	cudaMemcpy( res, d_res, numbytes, cudaMemcpyDeviceToHost);
+	cudaMemcpy(result, d_res, numbytes, cudaMemcpyDeviceToHost);
 	
 	// Free vars
 	free(pic);
-	free(res);
+	free(result);
 	cudaFree(d_pic);
 	cudaFree(d_res);
 	
@@ -228,4 +263,7 @@ int main( int argc, char **argv )
 	write_ppm( "result8000gpu.ppm", xsize, ysize, 255, result);
 	fprintf(stderr, "sobel GPU done\n"); 
 }
+
+
+
 

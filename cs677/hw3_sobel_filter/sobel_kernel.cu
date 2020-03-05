@@ -1,4 +1,3 @@
-#define SOBEL_SIZE 9
 #define TILE_SIZE 16
 #define MASK_WIDTH 3
 
@@ -6,47 +5,40 @@
 #include <cuda_runtime.h>
 
 __global__ void sobel_filter(int *inputM, int *outputM, int width, int height, int thresh){
+	// shared 16x16
 	__shared__ int local[TILE_SIZE][TILE_SIZE];
 	
-	int idx_x = blockIdx.x * blockDim.x + threadIdx.x;
-	int idx_y = blockIdx.y * blockDim.y + threadIdx.y;
+	//set up vars, leave 1 px border
 	int tx = threadIdx.x; int ty = threadIdx.y;
+	//find positions within input array for 14x14
+	int row = blockIdx.x * (blockDim.x-2) + tx + 1; 
+	int col = blockIdx.y * (blockDim.y-2) + ty + 1;
 	
-	local[threadIdx.x][threadIdx.y] = inputM[idx_x*width + idx_y];
-	int gx = 0,gy = 0;
-	int magnitude, result;
-	// Check within bounds
-	if(idx_y + 1< height && idx_x + 1< width && idx_y - 1 >= 0 && idx_x -1 >= 0){
-		// find gx within bounds
-		//base case left
-		if(tx == 0){
-			// if bottom left
-			if(ty + 1 > blockDim.y){
-				gx = 
-				gy = 
-			}else if(ty == 0){
-				int top_left = inputM[(idx_x-1)*width + idx_y -1];
-				int bot_left = inputM[(idx_x+1)*width + idx_y -1];
-				//here firx
-				gx = top_left - local[tx+1][ty-1] + (2*inputM[idx_x*width + idx_y -1]) - (2*local[tx+1][ty]) + bot_left - local[tx+1][ty+1];
-				gy = 
-			}else{
-				int top_left = inputM[(idx_x-1)*width + idx_y -1];
-				int bot_left = inputM[(idx_x+1)*width + idx_y -1];
-				gx = top_left - local[tx+1][ty-1] + (2*inputM[idx_x*width + idx_y -1]) - (2*local[tx+1][ty]) + bot_left - local[tx+1][ty+1];
-				gy = top_left + (2 * local[tx][ty-1]) + local[tx+1][ty-1] - bot_left - 2*local[tx][ty+1] - local[tx+1][ty+1];
-			}
+	//correct to the right place in input
+	int place = (row-1)*width + col - 1;
+
+	//if in bounds of pic
+	if(place < height*width){
+		//store into shared
+		local[tx][ty] = inputM[place];
+		//find inner part of 14x14
+		if(tx > 0 && tx < 15 && ty > 0 && ty < 15){
+			//no edges or corners
+			int top_left = local[tx-1][ty-1], top_right = local[tx+1][ty-1];
+			int bot_left = local[tx-1][ty+1], bot_right = local[tx+1][ty+1];
+			int gx = top_left - top_right + 2*local[tx-1][ty] - 2*local[tx+1][ty] + bot_left - bot_right;
+			int gy = top_left + 2*local[tx][ty-1] + top_right - bot_left - 2*local[tx][ty+1] - bot_right;
 			
+			// calculate magnitude
+			int magnitude = gx*gx + gy*gy;
+			int result = 0;
 			
+			// Check if greater than threshold
+			if(magnitude > thresh)
+				result = 255;
+			
+			// store into global
+			outputM[place] = result;  
 		}
 	}
-	
-	magnitude = gx*gx + gy*gy;
-	
-	if(magnitude > thresh)
-		result = 255;
-	else
-		result = 0;
-	
-	outputM[idx_x*width + idx_y] = result;  
 }
