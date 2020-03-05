@@ -144,11 +144,11 @@ __global__ void sobel_filter(int *inputM, int *outputM, int width, int height, i
 	int place = (row-1)*width + col-1;
 
 	//if in bounds of pic -- check?
-	if((row -1 < width) && (col -1< height)){
+	if((row < width) && (col < height)){
 		//store into shared
 		local[tx][ty] = inputM[place];
 		//find inner part of 14x14
-		if(tx > 0 && tx < 15 && ty > 0 && ty < 15){
+		if((tx > 0) && (tx < 15) && (ty > 0) && (ty < 15) && (row + 1 < width) && (col + 1  < height)){
 			//reuse vars
 			int top_left = local[tx-1][ty-1], top_right = local[tx+1][ty-1];
 			int bot_left = local[tx-1][ty+1], bot_right = local[tx+1][ty+1];
