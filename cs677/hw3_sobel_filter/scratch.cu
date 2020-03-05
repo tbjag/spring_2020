@@ -59,3 +59,16 @@ local[tx][ty] = inputM[place];
 			gx = top_left - top_right + 2*local[tx-1][ty] - 2*local[tx+1][ty] + bot_left - bot_right;
 			gy = top_left + 2*local[tx][ty-1] + top_right - bot_left - 2*local[tx][ty+1] - bot_right;
 		}
+		
+---------------
+// Copy data to device
+	
+
+	block_size = 16;
+	dim3 dim_block (block_size, block_size);
+	//decrease dims by 2 to account for resizing
+	dim3 dim_grid ((int)ceil((float)(xsize-2)/(block_size-2)), (int)ceil((float)(ysize-2)/(block_size-2)));
+	printf("going intp func\n");
+	// Run kernel 
+	//sobel_filter<<< dim_grid, dim_block >>> (d_pic, d_res, xsize, ysize, thresh);
+	printf("going out of func\n");

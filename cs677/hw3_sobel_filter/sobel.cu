@@ -4,7 +4,6 @@
 #include "string.h"
 
 #define DEFAULT_THRESHOLD  8000
-#define SOBEL_SIZE 18
 #define TILE_SIZE 16
 
 #define DEFAULT_FILENAME "BWstop-sign.ppm"
@@ -138,14 +137,14 @@ __global__ void sobel_filter(int *inputM, int *outputM, int width, int height, i
 	//set up vars, leave 1 px border
 	int tx = threadIdx.x; int ty = threadIdx.y;
 	//find positions within input array for 14x14
-	int row = blockIdx.x * (blockDim.x-2) + tx + 1; 
-	int col = blockIdx.y * (blockDim.y-2) + ty + 1;
+	int row = blockIdx.x * 14 + tx +1; 
+	int col = blockIdx.y * 14 + ty +1;
 	
 	//correct to the right place in input
-	int place = (row-1)*width + col - 1;
+	int place = (row-1)*width + col-1;
 
 	//if in bounds of pic -- check?
-	if(place < height*width){
+	if((row -1 < width) && (col -1< height)){
 		//store into shared
 		local[tx][ty] = inputM[place];
 		//find inner part of 14x14
@@ -155,7 +154,7 @@ __global__ void sobel_filter(int *inputM, int *outputM, int width, int height, i
 			int bot_left = local[tx-1][ty+1], bot_right = local[tx+1][ty+1];
 			int gx = top_left - top_right + 2*local[tx-1][ty] - 2*local[tx+1][ty] + bot_left - bot_right;
 			int gy = top_left + 2*local[tx][ty-1] + top_right - bot_left - 2*local[tx][ty+1] - bot_right;
-			
+			//int gx = 0, gy =0;
 			// calculate magnitude
 			int magnitude = gx*gx + gy*gy;
 			int result = 0;
@@ -165,7 +164,7 @@ __global__ void sobel_filter(int *inputM, int *outputM, int width, int height, i
 				result = 255;
 			
 			// store into global -- hceck?
-			outputM[] = result;  
+			outputM[place] = result;
 		}
 	}
 }
@@ -233,22 +232,23 @@ int main( int argc, char **argv )
     // TO-DO: deallocate res and pic
 	
 	//Set up vars
-	int *d_pic, *d_res;
+	int *d_pic;
+	int *d_res;
 	int block_size;
-									
-	// Malloc on device
+	
+	// Malloc on 
 	cudaMalloc(&d_pic, numbytes);
 	cudaMalloc(&d_res, numbytes);
 	
-	// Copy data to device
-	cudaMemcpy( d_pic, pic, numbytes, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_pic, pic, numbytes, cudaMemcpyHostToDevice);
 	
 	block_size = 16;
 	dim3 dim_block (block_size, block_size);
-	dim3 dim_grid ((int)ceil((float)xsize/(block_size-2)), (int)ceil((float)ysize/(block_size-2)));
+	//decrease dims by 2 to account for resizing
+	dim3 dim_grid ((int)ceil((float)(xsize-2)/(block_size-2)), (int)ceil((float)(ysize-2)/(block_size-2)));
 	
 	// Run kernel 
-	sobel_filter<<< dim_grid, dim_block >>> (d_pic, d_res, xsize, ysize, thresh);
+	//sobel_filter<<< dim_grid, dim_block >>> (d_pic, d_res, xsize, ysize, thresh);
 	
 	// Copy result back to host
 	cudaMemcpy(result, d_res, numbytes, cudaMemcpyDeviceToHost);
@@ -256,6 +256,7 @@ int main( int argc, char **argv )
 	// Free vars
 	free(pic);
 	free(result);
+	//free(res);
 	cudaFree(d_pic);
 	cudaFree(d_res);
 	
