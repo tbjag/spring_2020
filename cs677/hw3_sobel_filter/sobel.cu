@@ -228,8 +228,6 @@ int main( int argc, char **argv )
 
 	write_ppm( "result8000gold.ppm", xsize, ysize, 255, result);
 	fprintf(stderr, "sobel CPU done\n"); 
-
-    // TO-DO: deallocate res and pic
 	
 	//Set up vars
 	int *d_pic;
@@ -248,10 +246,16 @@ int main( int argc, char **argv )
 	dim3 dim_grid ((int)ceil((float)(xsize-2)/(block_size-2)), (int)ceil((float)(ysize-2)/(block_size-2)));
 	
 	// Run kernel 
-	//sobel_filter<<< dim_grid, dim_block >>> (d_pic, d_res, xsize, ysize, thresh);
+	sobel_filter<<< dim_grid, dim_block >>> (d_pic, d_res, xsize, ysize, thresh);
+	
+	printf("after filter\n");
 	
 	// Copy result back to host
 	cudaMemcpy(result, d_res, numbytes, cudaMemcpyDeviceToHost);
+	
+	for(int i = 0; i < xsize; i++){
+		printf("%d ", result[i*xsize]);
+	}
 	
 	// Free vars
 	free(pic);
