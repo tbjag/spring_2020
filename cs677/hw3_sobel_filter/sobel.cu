@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include "string.h"
+#include <iostream>
 
 #define DEFAULT_THRESHOLD  8000
 #define TILE_SIZE 16
@@ -132,23 +133,24 @@ void write_ppm( char *filename, int xsize, int ysize, int maxval, int *pic)
 
 __global__ void sobel_filter(int *inputM, int *outputM, int width, int height, int thresh){
 	// shared 16x16
-	__shared__ int local[TILE_SIZE][TILE_SIZE];
+	__shared__ int local[16][16];
 	
 	//set up vars
-	int tx = threadIdx.x; int ty = threadIdx.y;
+	int tx = threadIdx.x, ty = threadIdx.y;
 	//find positions within input array for 14x14 offset by one for pixel border
-	int row = blockIdx.x * 14 + tx + 1; 
-	int col = blockIdx.y * 14 + ty + 1;
+	int row = blockIdx.x * 14 + tx+1; 
+	int col = blockIdx.y * 14 + ty+1;
 	
 	//correct to the right place in input
 	int place = (row-1)*width + col-1;
-
+	
 	//if in bounds of pic
-	if((row - 1 < width) && (col - 1 < height)){
+	if((row -1< width) && (col -1< height)){
 		//store into shared
 		local[tx][ty] = inputM[place];
+		__syncthreads();
 		//find inner part of 14x14
-		if((tx > 0) && (tx < 15) && (ty > 0) && (ty < 15) && (row + 1 < width) && (col + 1 < height)){// <-- check reasoning
+		if((tx > 0) && (tx < 15) && (ty > 0) && (ty < 15) && (row -2< width) && (col -2< height)){// <-- check reasoning
 			//reuse vars
 			int top_left = local[tx-1][ty-1], top_right = local[tx+1][ty-1];
 			int bot_left = local[tx-1][ty+1], bot_right = local[tx+1][ty+1];
@@ -163,10 +165,11 @@ __global__ void sobel_filter(int *inputM, int *outputM, int width, int height, i
 			if(magnitude > thresh)
 				result = 255;
 			
-			// store into global -- hceck?
+			// store into global
 			outputM[place] = result;
 		}
 	}
+	
 }
 
 
@@ -230,8 +233,8 @@ int main( int argc, char **argv )
 	fprintf(stderr, "sobel CPU done\n"); 
 	
 	//Set up vars
-	int *d_pic;
-	int *d_res;
+	int *d_pic = (int *) malloc( numbytes );
+	int *d_res = (int *) malloc( numbytes );
 	int block_size;
 	
 	// Malloc on 
@@ -243,7 +246,10 @@ int main( int argc, char **argv )
 	block_size = 16;
 	dim3 dim_block (block_size, block_size);
 	//decrease dims by 2 to account for resizing
-	dim3 dim_grid ((int)ceil((float)(xsize-2)/(block_size-2)), (int)ceil((float)(ysize-2)/(block_size-2)));
+	int gridx = (int)ceil((float)xsize/(block_size-2));
+	int gridy = (int)ceil((float)ysize/(block_size-2));
+	printf("xsize %d, ysize: %d, gridx:%d, gridy: %d\n", xsize, ysize, gridx, gridy);
+	dim3 dim_grid (gridx, gridy);
 	
 	// Run kernel 
 	sobel_filter<<< dim_grid, dim_block >>> (d_pic, d_res, xsize, ysize, thresh);
@@ -251,11 +257,11 @@ int main( int argc, char **argv )
 	printf("after filter\n");
 	
 	// Copy result back to host
-	cudaMemcpy(result, d_res, numbytes, cudaMemcpyDeviceToHost);
+	cudaMemcpy(result, d_res, numbytes, cudaMemcpyDeviceToHost);	
 	
-	for(int i = 0; i < xsize; i++){
-		printf("%d ", result[i*xsize]);
-	}
+	// Write to output
+	write_ppm( "result8000gpu.ppm", xsize, ysize, 255, result);
+	fprintf(stderr, "sobel GPU done\n"); 
 	
 	// Free vars
 	free(pic);
@@ -263,10 +269,6 @@ int main( int argc, char **argv )
 	//free(res);
 	cudaFree(d_pic);
 	cudaFree(d_res);
-	
-	// Write to output
-	write_ppm( "result8000gpu.ppm", xsize, ysize, 255, result);
-	fprintf(stderr, "sobel GPU done\n"); 
 }
 
 
