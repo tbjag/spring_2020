@@ -29,7 +29,7 @@ int main(){
             temp[i] += input2[i][j];
             result[i][j] = temp[i];
             for(int k = 0; k < 128; k++){
-                result[i][j] = input1[j] * input1[k];//what
+                result[i][j] += input1[j] * input1[k];//what
             }
         }
     }

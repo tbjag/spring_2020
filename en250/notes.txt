@@ -1,0 +1,6 @@
+NOTES:
+
+have a function that runs until all are sick
+
+visualize random walks
+

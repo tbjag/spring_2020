@@ -1,11 +1,10 @@
 import pandas as pd
-from random import seed
-from random import choice
+import random
 import time
 import math
 
 #define move set
-MOVES = [0,1,2,3,4]
+MOVES = [0,1,2]
 #define area
 BOUND_X_MIN = 0
 BOUND_Y_MIN = 0
@@ -22,23 +21,32 @@ class Person:
 		self.x = pos_x
 		self.y = pos_y
 		self.is_sick = False
+		self.goto_x = random.randrange(BOUND_X_MAX)
+		self.goto_y = random.randrange(BOUND_Y_MAX)
 	def move(self):
 		#random move set, if at edge, then do nothing
-		#seed(int(time.time))
-		dir = choice(MOVES)
-		#check bounds
-		if(dir == 0 and self.x != BOUND_X_MIN):
-			#go left
-			self.x -= 1
-		elif(dir == 1 and self.x != BOUND_X_MAX):
-			#go right
-			self.x += 1
-		elif(dir == 2 and self.y != BOUND_Y_MIN):
-			#go down
-			self.y -= 1
-		elif(dir == 3 and self.y != BOUND_Y_MAX):
-			#go up
+		if(self.x == self.goto_x and self.y == self.goto_y):
+			#set new random coords if arrived at destination
+			self.goto_x = random.randrange(BOUND_X_MAX)
+			self.goto_y = random.randrange(BOUND_Y_MAX)
+		elif(self.x == self.goto_x):
 			self.y += 1
+		elif(self.y == self.goto_y):
+			self.x += 1
+		else:
+			move = random.choice(MOVES)
+			if(move == 0):
+				if ((self.goto_x - self.x) > 0):
+					self.x += 1
+				else:
+					self.x -= 1
+			elif(move == 1):
+				if ((self.goto_y - self.y) > 0):
+					self.y += 1
+				else:
+					self.y -= 1				
+
+		
 
 #calculate manhattan distance abs(posx - posx)
 def within_area(person1, person2, prox):
