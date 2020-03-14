@@ -64,7 +64,7 @@ def main():
 	#make one person sicl
 	arr[0].is_sick = True
 	
-	for time_step in range(100):
+	for time_step in range(400):
 		for i in range(30):
 			arr[i].move()
 		#can optimize this part
@@ -78,6 +78,25 @@ def main():
 		#print out states
 		for i in range(30):
 			print_state(arr[i])
-
+	
+	""" days = 0
+	count = 0
+	while(count < 29):
+		for i in range(30):
+			arr[i].move()
+		#can optimize this part
+		for lol in range(30):
+			for gey in range(30):
+				if(lol != gey):
+					if(within_area(arr[lol], arr[gey], 1)):
+						if(arr[lol].is_sick or arr[gey].is_sick):
+							arr[lol].is_sick = True
+							arr[gey].is_sick = True
+		count = 0
+		for jk in arr:
+			if jk.is_sick:
+				count += 1
+		days += 1
+	print(days) """
 
 main()
