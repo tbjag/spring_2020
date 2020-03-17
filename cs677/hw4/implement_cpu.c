@@ -3,9 +3,9 @@
 
 int print_output(float output[128][128]){
     //print output
-    for(int o = 0; o < 128; o++){
-        for(int p = 0; p < 128; p++){
-           printf("%f ", output[o][p]);
+    for(int o = 0; o < 5; o++){
+        for(int p = 0; p < 5; p++){
+           printf("%d ", (int)output[o][p]);
         }
         printf("\n");
     }
@@ -18,7 +18,7 @@ int main(){
     for(int o = 0; o < 128; o++){
         input1[o] = 1;
         for(int p = 0; p < 128; p++){
-            input2[o][p] = 2;
+            input2[o][p] = 1;
         }
     }
 

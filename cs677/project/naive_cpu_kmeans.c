@@ -1,7 +1,7 @@
 #include <string.h>
 #include<iostream>
 
-unsigned int *read_file(char* file_path, ){
+unsigned int *read_file(char* file_path){
     
 }
 

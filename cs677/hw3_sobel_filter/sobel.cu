@@ -269,6 +269,7 @@ int main( int argc, char **argv )
 	//free(res);
 	cudaFree(d_pic);
 	cudaFree(d_res);
+	return 0;
 }
 
 
