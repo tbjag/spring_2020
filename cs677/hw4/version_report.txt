@@ -1,0 +1,8 @@
+completed first naive version. it uses the first for loop as all the threads. all interactions are through global memory. 
+can do any size confirmed. made more dynamic. 
+
+v2 - put into constant memory
+v3 - tiling 
+https://devblogs.nvidia.com/how-implement-performance-metrics-cuda-cc/ maybe implement
+
+

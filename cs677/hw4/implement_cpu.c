@@ -28,8 +28,9 @@ int main(){
         for(int j =0; j < 128; j++){
             temp[i] += input2[i][j];
             result[i][j] = temp[i];
+            //seperate threads
             for(int k = 0; k < 128; k++){
-                result[i][j] += input1[j] * input1[k];//what
+                result[i][j] += input1[j] * input1[k];//speed up 
             }
         }
     }
