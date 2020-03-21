@@ -6,31 +6,41 @@
 #include <iostream>
 
 #define DEFAULT_SIZE 128
+#define DEFAULT_WIDTH 128
+#define DEFAULT_HEIGHT 128
 #define TILE_SIZE 16
 
-__global__ void unknown_algo(float *inp1, float *inp2, float *result, int size){
+__global__ void unknown_algo(float *inp1, float *inp2, float *result, int width, int height){
 	// make shared
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
-	float temp = 0.0f;
-	for(int j = 0; j < size; j++){
-		temp += inp2[id * size + j];
-		result[id * size + j] = temp;
-		for(int k = 0; k < size; k++){
-			//shared input 1 here
-			result[id * size + j] += inp1[j] * inp1[k];
+	float temp, k_loop_temp, inpt1_s;
+	temp = 0.0f;
+	for(int j = 0; j < height; j++){
+		temp += inp2[id * width + j];
+		result[id * width + j] = temp;
+		k_loop_temp = 0.0f;
+		inpt1_s = inp1[j];
+		for(int k = 0; k < height; k++){
+			k_loop_temp += inpt1_s * inp1[k];
 		}
+		//speed up here
+		result[id * width + j] += k_loop_temp;
 	}
 }
 
 int main( int argc, char **argv ){
 	int size = DEFAULT_SIZE;
-	if(argc == 2){
-		size = atoi(argv[1]);
+	int width = DEFAULT_WIDTH;
+	int height = DEFAULT_HEIGHT;
+	if(argc == 3){
+		//size = atoi(argv[1]);
+		width = atoi(argv[1]);
+		height = atoi(argv[2]);
 	}
 	
 	//create vars
-	int input1_bytes = size * sizeof(float);
-	int num_bytes = size * size * sizeof(float);
+	int input1_bytes = height * sizeof(float);
+	int num_bytes = width * height * sizeof(float);
 	
 	//event timers
 	cudaEvent_t start,stop;
@@ -53,10 +63,10 @@ int main( int argc, char **argv ){
 	cudaMalloc(&d_result, num_bytes);
 	
 	//put in data
-	for(int o = 0; o < size; o++){
+	for(int o = 0; o < width; o++){
         h_input1[o] = 1;
-        for(int p = 0; p < size; p++){
-            h_input2[size * o + p] = 1;
+        for(int p = 0; p < height; p++){
+            h_input2[width * o + p] = 1;
         }
     }
 
@@ -66,13 +76,13 @@ int main( int argc, char **argv ){
 	
 	//declare block and grid size for kernel
 	int block_size = 128;
-	int grid_size = (int)ceil((float)size/block_size);
+	int grid_size = (int)ceil((float)width/block_size);
 	
 	//start timer 
 	cudaEventRecord(start);
 	
 	//run kernel
-	unknown_algo<<< grid_size, block_size >>> (d_input1, d_input2, d_result, size);
+	unknown_algo<<< grid_size, block_size >>> (d_input1, d_input2, d_result, width, height);
 	
 	//end timer
 	cudaEventRecord(stop);
@@ -86,18 +96,15 @@ int main( int argc, char **argv ){
 	cudaEventElapsedTime(&milliseconds, start, stop);
 	
 	//print output
-	for(int o = 0; o < size; o++){
-        for(int p = 0; p < size; p++){
-            printf("%d ", (int)h_result[o*size + p]);
+	for(int o = 0; o < width; o++){
+        for(int p = 0; p < height; p++){
+            printf("%d ", (int)h_result[o*width + p]);
         }
 		printf("\n");
     }
 	printf("time for execution: %lf ms\n", milliseconds);
 	
 	//free all vars
-	//free(d_input1);
-	//free(d_input2);
-	//free(d_result);
 	free(h_input1);
 	free(h_input2);
 	free(h_result);
