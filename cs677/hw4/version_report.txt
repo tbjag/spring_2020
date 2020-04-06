@@ -7,9 +7,40 @@ loop reorder is not possible because of the way we add rows
 v2 - timer *
 v3 - k_loop storage, bring into registers * all that i can for now?
 v4 - make size dynamic & testing of large n & timing of c prog *
-v5 - tiling shared mems
-v6 - 2 kernel launches
-v7 - const mem try both access structs
+v4.5 - grid x y, make check function *
+v5 - tiling shared mems inp2 * 
+v6 - tiling shared mems inp1
+v7 - 2 kernel launches?
+v8 - const mem try both access structs
+v9 - tuning check if you can unroll
+
+tiling finished,
+diff size nums is a problem
+const works, 
+set up for different configs
 
 
-
+//make vars for temp, k_temp, input1[ty]
+	float temp = 0.0f, k_loop_t = 0.0f, input1_store = inp1[ty];
+	unsigned int curr = 0;
+	//tile for input 2
+	for(int count_inp2 = 0; count_inp2 < num_tiles; count_inp2++){
+		//pull into shared
+		int pos_y = count_inp2 * TILE_SIZE + threadIdx.y;
+		temp_shared_2[threadIdx.x][threadIdx.y] = inp2[tx*size + pos_y];
+		//synchronize
+		__syncthreads();
+		//add from temp check bounds
+		for(int count = 0; count < TILE_SIZE; count++){
+			if(curr <= ty)
+				temp += temp_shared_2[threadIdx.x][count];
+			curr++;
+		}
+		
+	}
+	result[tx*size + ty] = temp;	
+	//find inpt1 of result
+	for(int k = 0; k < size; k++){
+		k_loop_t += input1_store * inp1[k];
+	}
+	result[tx*size + ty] += k_loop_t;	

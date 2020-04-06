@@ -1,0 +1,60 @@
+//tiling complete
+__global__ void unknown_algo_inp2(float *inp2, float *result, int row, int col, int num_tiles){
+	//add shared memory
+	__shared__ float temp_shared_2[TILE_SIZE * TILE_SIZE];
+	//get row col idx
+	int tx = blockIdx.x * blockDim.x + threadIdx.x;
+	int ty = blockIdx.y * blockDim.y + threadIdx.y;
+	float temp = 0.0f;
+	unsigned int curr = 0, pos_y;
+	
+	for(unsigned int count = 0; count < num_tiles; count++){
+		//find position
+		pos_y = count * TILE_SIZE + threadIdx.y;
+		//check bounds and load tile
+		if(pos_y < col && tx < row){
+			temp_shared_2[threadIdx.x * TILE_SIZE + threadIdx.y] = inp2[tx*row + pos_y];
+		}
+		__syncthreads();
+		for(unsigned int tile = 0; tile < TILE_SIZE; tile++){
+			if(curr <= ty){
+				temp += temp_shared_2[threadIdx.x * TILE_SIZE + tile];
+			}
+			curr ++;
+		}
+	}
+	if(tx < row && ty < col){
+		result[tx*row + ty] = 30;
+	}
+}
+
+//tiling complete
+__global__ void unknown_algo_inp2(float *result, int row, int col, int num_tiles, int chunk){
+	int tx = blockDim.x * blockIdx.x + threadIdx.x;
+	int ty = blockDim.y * blockIdx.y + threadIdx.y;
+	
+	if(ty < row && tx < col){
+		result[ty*row + tx] = c_inp[ty*row + tx];
+	}
+}
+
+//tiling complete
+__global__ void unknown_algo_inp1(float *result, int row, int col, int num_tiles, int stride, int chunk){
+	int tx = blockDim.x * blockIdx.x + threadIdx.x;
+	int ty = blockDim.y * blockIdx.y + threadIdx.y;
+	
+	float temp, local;
+	temp = 0.0f;
+	if(ty < row && tx < col){
+		local = c_inp[ty*row +tx];
+		result[ty*row + tx] = temp;
+	}
+	
+	for(int i = 0; i < col; i++){
+		temp += local * c_inp[stride + i];
+	}
+	
+	if(ty < row && tx < col){
+		result[ty*row + tx] = temp;
+	}
+}
