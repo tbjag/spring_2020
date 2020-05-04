@@ -31,20 +31,51 @@ class bike_node{
     }
 };
 
+
+bool depth_first_search(int u, vector<bool> used, vector<vector<int>> g, vector<int> lines, int num_bikes){
+    for(int i = 0; i < num_bikes; i++){
+        if(g[u][i] && !used[i]){
+            used[i] = true;
+            if(lines[i] == -1 || depth_first_search(lines[i], used, g, lines, num_bikes)){
+                lines[i] = u;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
 //munkers algorithm iterative
 int munkers(int midpoint, vector<bike_node> agg_nodes, int num_bikers, int num_bikes){
     //create vector g? explain
     vector<vector<int>> g;
-    g.resize(num_bikers, vector<int>(num_bikes, 0));
-
+    g.resize(510, vector<int>(510, 0));
     //fill vector with spots
     for(int i = 0; i <= midpoint; i++){
         g[agg_nodes[i].biker][agg_nodes[i].bike] = 1;
     }
 
-    //munkers...
+    int result = 0;
+    
+    vector<int> lines;
+    vector<bool> used;
+    
+    lines.resize(num_bikes, -1);
+    used.resize(num_bikes);
 
+    
+
+    //munkers...
+    for(int i = 0; i < num_bikers; i++){
+        fill(used.begin(), used.end(), false);
+        if(depth_first_search(i, used, g, lines, num_bikes)){
+            result++;
+        }
+    }
+    return result;
 }
+
 
 //set up and solve through binary search
 int binary_search(vector<tuple<int, int>> biker_vector, vector<tuple<int, int>> bikes_vector, int allowed){
@@ -72,11 +103,12 @@ int binary_search(vector<tuple<int, int>> biker_vector, vector<tuple<int, int>> 
     sort(all_nodes.begin(), all_nodes.end());
 
     // initialize 
-    int low = -1, high = num_bikers * num_bikes - 1, middle;
+    int low = -1, high = all_nodes.size()-1, middle;
 
     while(high - low > 1){
         middle = (high + low)/2;
-        if(munkers(middle, all_nodes, num_bikers, num_bikes) >= allowed){
+        cout << middle << " " << high << " " << low << endl;
+        if(calc(middle, all_nodes, num_bikers, num_bikes) >= allowed){
             high = middle;
         }else{
             low = middle;
@@ -112,7 +144,7 @@ int main(){
     
     //call solution
     final_answer = binary_search(biker_vector, bikes_vector, bikes_allowed);
-
+    cout << final_answer << endl;
     return 0;
 
 }
