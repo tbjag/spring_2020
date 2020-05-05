@@ -4,3 +4,4 @@ have a function that runs until all are sick
 
 visualize random walks
 
+https://www.worldometers.info/coronavirus/coronavirus-age-sex-demographics/
