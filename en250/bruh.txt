@@ -1,0 +1,7 @@
+code notes:
+
+assumptions:
+- population doesnt die
+- older people are more susceptible
+- people wont age during the simulation
+- population age evenly distributed - not true, but easier to test

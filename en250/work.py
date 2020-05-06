@@ -3,14 +3,14 @@ import random
 import time
 import csv
 POPULATION_DENSITY = .75
-VACCINATED_PERCENTAGE = .5
+SOCIAL_DIST_PERCENTAGE = 0
 INITIAL_SICK_PERCENTAGE = 0.001
-PERSON_MAX_AGE = 28470
+#PERSON_MAX_AGE = 28470
 
 class Person:
-    def __init__(self, alive, vaccinated, sick, age, sick_days):
+    def __init__(self, alive, social_distance, sick, age, sick_days):
         self.alive = alive
-        self.vaccinated = vaccinated
+        self.social_distance = social_distance
         self.sick = sick
         self.age = age
         self.sick_days = sick_days
@@ -19,22 +19,22 @@ class Person:
 environment = [[None for _ in range(200)] for _ in range(100)]
 dead_from_sickness = 0
 healed = 0
-vaccinated_deaths = 0
-unvaccinated_deaths = 0
+social_dis_deaths = 0
+not_social_dis_deaths = 0
 age_deaths = 0
 
 def initializeEnvironment():
     global POPULATION_DENSITY
-    global VACCINATED_PERCENTAGE
+    global SOCIAL_DIST_PERCENTAGE
     global INITIAL_SICK_PERCENTAGE
     for i in range(len(environment)):
         for j in range(len(environment[i])):
             x = None
             exist_chance = random.random()
-            vaccinated_chance = random.random()
+            dice = random.random()
             sick_chance = random.random()
             if random.random() < POPULATION_DENSITY: #percent chance there is a person in this location
-                 x = Person(True, (vaccinated_chance < VACCINATED_PERCENTAGE), (sick_chance < INITIAL_SICK_PERCENTAGE), random.randint(1, 23725), 0)
+                 x = Person(True, (dice < SOCIAL_DIST_PERCENTAGE), (sick_chance < INITIAL_SICK_PERCENTAGE), random.randint(1, 100), 0)
             environment[i][j] = x
 
 #simulates the passing of time and interaction between people
@@ -57,15 +57,14 @@ def step():
 #The chance that someone will die depending on how many days they've been sick already. Each index is one day
 def deathByAge(dice, prob, person):
     global dead_from_sickness
-    global vaccinated_deaths
-    global unvaccinated_deaths
-    global age_deaths
+    global social_dis_deaths
+    global not_social_dis_deaths
     if dice < prob:
         dead_from_sickness+=1
-        if person.vaccinated:
-            vaccinated_deaths+=1
+        if person.social_distance:
+            social_dis_deaths+=1
         else:
-            unvaccinated_deaths+=1
+            not_social_dis_deaths+=1
         return True
     return False
 
@@ -73,29 +72,26 @@ def deathByAge(dice, prob, person):
 #returns True if the person dies of old age
 def determineDeath(person):
     global dead_from_sickness
-    global vaccinated_deaths
-    global unvaccinated_deaths
-    global age_deaths
-    if person != None:
-        if person.age > PERSON_MAX_AGE: #assume 100 percent
-            age_deaths+=1
-            return True
+    global social_dis_deaths
+    global not_social_dis_deaths
+
+    if person != None: #assume
         if person.sick:
-            if(person.age < PERSON_MAX_AGE/10): #age 0-9 no fatality
-                return False
             dice = random.random()
-            if person.age < PERSON_MAX_AGE/10 * 4: #age 10-39 .2% fatality
-                return deathByAge(dice, .002, person)
-            elif person.age < PERSON_MAX_AGE/10 * 5: #40 - 49
-                return deathByAge(dice, .004, person)
-            elif person.age < PERSON_MAX_AGE/10 * 6: #50 - 59
-                return deathByAge(dice, .013, person)
-            elif person.age < PERSON_MAX_AGE/10 * 7: #60 - 69
-                return deathByAge(dice, .036, person)
-            elif person.age < PERSON_MAX_AGE/10 * 8: #70 - 79
-                return deathByAge(dice, .08, person)
+            if(person.age < 10): #age 0-9 no fatality
+                return False
+            elif person.age < 40: #age 10-39 .2% fatality
+                return deathByAge(dice, .000071429, person)
+            elif person.age < 50: #40 - 49
+                return deathByAge(dice, .0001429, person)
+            elif person.age < 60: #50 - 59
+                return deathByAge(dice, .0004643, person)
+            elif person.age < 70: #60 - 69
+                return deathByAge(dice, .0012857, person)
+            elif person.age < 80: #70 - 79
+                return deathByAge(dice, .0028571, person)
             else: # 80+ 
-                return deathByAge(dice, .14, person)
+                return deathByAge(dice, .005, person)
     return False
 
 
@@ -103,11 +99,10 @@ def determineHealth(person):
     global healed
     if person.sick:
         person.sick_days+=1
-        #2.5 percent chance of healing everyday to add up to 50% over the 20 day perso
-        if random.random() < .025:
-            person.sick = False
-            person.sick_days = 0
-            healed+=1
+    if person.sick_days > 28:
+        person.sick = False 
+        healed += 1
+    
 
 #Changes the persons sick status based on the condition of the people around them
 def determineInfectionRate(person, surrounding_people):
@@ -117,14 +112,15 @@ def determineInfectionRate(person, surrounding_people):
             if neighbor.sick:
                 sick_count+=1
 
-    if person.vaccinated:
-        infection_rate = sick_count * 0.0125
+    if person.social_distance:
+        infection_rate = sick_count * 0.0001
     else:
-        infection_rate = sick_count * 0.125
+        infection_rate = sick_count * 0.21
 
     if random.random() < infection_rate:
         person.sick = True
 
+#make move
 def personMove(i, j):
     direction = random.random()
     if direction>=0 and direction<.20:
@@ -217,20 +213,6 @@ def get_surrounding(x,y):
     surround = [get_zero(x,y), get_one(x,y), get_two(x,y), get_three(x,y), get_four(x,y), get_five(x,y), get_six(x,y), get_seven(x,y)]
     return surround
 
-
-def print_pretty():
-    for i in range(len(environment)):
-        line = ""
-        for person in environment[i]:
-            if person != None:
-                if person.sick:
-                    line += u"\u2588" + ""
-                else:
-                    line += "-"
-            else:
-                line += " "
-        print (line)
-
 def get_population():
     population = 0
     for i in range(len(environment)):
@@ -248,23 +230,23 @@ def get_healthy():
                     healthy+=1
     return healthy
 
-def get_vaccinated_healthy():
-    vaccinated_healthy = 0
+def get_social_d_healthy():
+    social_d_healthy = 0
     for i in range(len(environment)):
         for person in environment[i]:
             if person != None:
-                if (not person.sick) and (person.vaccinated):
-                    vaccinated_healthy+=1
-    return vaccinated_healthy
+                if (not person.sick) and (person.social_distance):
+                    social_d_healthy+=1
+    return social_d_healthy
 
-def get_unvaccinated_healthy():
-    unvaccinated_healthy = 0
+def get_not_social_d_healthy():
+    not_social_d_healthy = 0
     for i in range(len(environment)):
         for person in environment[i]:
             if person != None:
-                if (not person.sick) and (not person.vaccinated):
-                    unvaccinated_healthy +=1
-    return unvaccinated_healthy
+                if (not person.sick) and (not person.social_distance):
+                    not_social_d_healthy +=1
+    return not_social_d_healthy
 
 def get_infected():
     infected=0
@@ -275,21 +257,21 @@ def get_infected():
                     infected+=1
     return infected
 
-def get_vaccinated_infected():
+def get_social_d_infected():
     vaccinated_infected = 0
     for i in range(len(environment)):
         for person in environment[i]:
             if person != None:
-                if (person.sick) and (person.vaccinated):
+                if (person.sick) and (person.social_distance):
                     vaccinated_infected+=1
     return vaccinated_infected
 
-def get_unvaccinated_infected():
+def get_not_social_d_infected():
     unvaccinated_infected = 0
     for i in range(len(environment)):
         for person in environment[i]:
             if person != None:
-                if (person.sick) and (not person.vaccinated):
+                if (person.sick) and (not person.social_distance):
                     unvaccinated_infected+=1
     return unvaccinated_infected
 
@@ -297,13 +279,10 @@ def get_infection_deaths():
     return dead_from_sickness
 
 def get_vaccinated_deaths():
-    return vaccinated_deaths
+    return social_dis_deaths
 
 def get_unvaccinated_deaths():
-    return unvaccinated_deaths
-
-def get_old_age_deaths():
-    return age_deaths
+    return not_social_dis_deaths
 
 def get_recovered():
     return healed
@@ -311,45 +290,41 @@ def get_recovered():
 initializeEnvironment()
 writefile = open('result.csv', 'w+')
 csvwriter = csv.writer(writefile)
-fields = ["STEP", "POPULATION", "HEALTHY", "VACCINATED HEALTHY", "UNVACCINATED HEALTHY", "INFECTED", "VACCINATED INFECTED", "UNVACCINATED INFECTED", "DEATHS FROM INFECTION", "DEATHS VACCINATED", "DEATHS UNVACCINATED", "DEATHS FROM OLD AGE"]
+fields = ["STEP", "POPULATION", "HEALTHY", "VACCINATED HEALTHY", "UNVACCINATED HEALTHY", "INFECTED", "VACCINATED INFECTED", "UNVACCINATED INFECTED", "DEATHS FROM INFECTION", "DEATHS VACCINATED", "DEATHS UNVACCINATED" ]
 rows = []
 step_count = 0
 
-while True:
+while step_count < 200:
     step()
     step_count += 1
-    #print_pretty()
-
+    #get stats
     population = get_population()
     healthy = get_healthy()
-    vacc_healthy = get_vaccinated_healthy()
-    unvacc_healthy = get_unvaccinated_healthy()
+    social_d_healthy = get_social_d_healthy()
+    not_social_d_healthy = get_not_social_d_healthy()
     infected = get_infected()
-    vacc_infected = get_vaccinated_infected()
-    unvacc_infected = get_unvaccinated_infected()
+    social_d_infected = get_social_d_infected()
+    not_social_d_infected = get_not_social_d_infected()
     infected_deaths = get_infection_deaths()
-    vacc_deaths = get_vaccinated_deaths()
-    unvacc_deaths = get_unvaccinated_deaths()
-    old_age_deaths = get_old_age_deaths()
+    social_d_deaths = get_vaccinated_deaths()
+    not_social_d_deaths = get_unvaccinated_deaths()
     recovered = get_recovered()
 
     print ("\n")
     print ("Step: " + str(step_count))
     print ("Population: " + str(population))
     print ("Healthy: " + str(healthy))
-    print ("--Vaccinated: " + str(vacc_healthy))
-    print ("--Unvaccinated: " + str(unvacc_healthy))
+    print ("--Social Distancing: " + str(social_d_healthy))
+    print ("--Not Social Distancing: " + str(not_social_d_healthy))
     print ("Infected: " + str(infected))
-    print ("--Vaccinated: " + str(vacc_infected))
-    print ("--Unvaccinated: " + str(unvacc_infected))
+    print ("--Social Distancing: " + str(social_d_infected))
+    print ("--Not Social Distancing: " + str(not_social_d_infected))
     print ("Deaths from infection: " + str(infected_deaths))
-    print ("--Vaccinated: " + str(vacc_deaths))
-    print ("--Unvaccinated: " + str(unvacc_deaths))
-    print ("Deaths from old age: " + str(old_age_deaths))
-    print ("Healed: " + str(recovered))
-    #
+    print ("--Social Distancing: " + str(social_d_deaths))
+    print ("--Not Social Distancing: " + str(not_social_d_deaths))
+    print ("Recovered: " + str(recovered))
 
-    row =[step_count, population, healthy, vacc_healthy, unvacc_healthy, infected, vacc_infected, unvacc_infected, infected_deaths, vacc_deaths, unvacc_deaths, old_age_deaths]
+    row =[step_count, population, healthy, social_d_healthy, not_social_d_healthy, infected, social_d_infected, not_social_d_infected, infected_deaths, social_d_deaths, not_social_d_deaths]
     rows.append(row)
     if get_infected() == 0:
         break
@@ -359,19 +334,3 @@ while True:
 csvwriter.writerow(fields)
 csvwriter.writerows(rows)
 
-# print environment
-# print "\n"
-#
-# total = 0
-# for i in range(len(environment)):
-#     total += environment[i].count(None)
-#     print environment[i].count(None)
-# print total
-#
-# print "AGE"
-# for i in range(len(environment)):
-#     for j in range(len(environment[i])):
-#         try:
-#             print environment[i][j].age / 365
-#         except:
-#             print "False"

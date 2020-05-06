@@ -5,3 +5,14 @@ have a function that runs until all are sick
 visualize random walks
 
 https://www.worldometers.info/coronavirus/coronavirus-age-sex-demographics/
+
+- change vaccination and unvaccinated to social distancing/not
+
+- change while loop to for loop in the main and run it a few times with different time steps
+
+- i changed line 73 check it out
+
+- play around with values
+
+	line 5 - 7
+	line 113, function
