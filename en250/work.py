@@ -3,7 +3,7 @@ import random
 import time
 import csv
 POPULATION_DENSITY = .75
-SOCIAL_DIST_PERCENTAGE = 0
+SOCIAL_DIST_PERCENTAGE = .5
 INITIAL_SICK_PERCENTAGE = 0.001
 #PERSON_MAX_AGE = 28470
 
@@ -13,7 +13,8 @@ class Person:
         self.social_distance = social_distance
         self.sick = sick
         self.age = age
-        self.sick_days = sick_days
+        self.sick_days = 0
+        self.reinfected = 0
 
 
 environment = [[None for _ in range(200)] for _ in range(100)]
@@ -100,12 +101,18 @@ def determineHealth(person):
     if person.sick:
         person.sick_days+=1
     if person.sick_days > 28:
+        person.sick_days = 0
         person.sick = False 
         healed += 1
     
 
 #Changes the persons sick status based on the condition of the people around them
 def determineInfectionRate(person, surrounding_people):
+    if person.reinfected and person.sick < 28:
+        person.reinfected += 1
+        return
+    else:
+        person.reinfected = 0
     sick_count = 0
     for neighbor in surrounding_people:
         if neighbor != None:
@@ -294,7 +301,7 @@ fields = ["STEP", "POPULATION", "HEALTHY", "VACCINATED HEALTHY", "UNVACCINATED H
 rows = []
 step_count = 0
 
-while step_count < 200:
+while step_count < 500:
     step()
     step_count += 1
     #get stats
