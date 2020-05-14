@@ -297,11 +297,11 @@ def get_recovered():
 initializeEnvironment()
 writefile = open('result.csv', 'w+')
 csvwriter = csv.writer(writefile)
-fields = ["STEP", "POPULATION", "HEALTHY", "VACCINATED HEALTHY", "UNVACCINATED HEALTHY", "INFECTED", "VACCINATED INFECTED", "UNVACCINATED INFECTED", "DEATHS FROM INFECTION", "DEATHS VACCINATED", "DEATHS UNVACCINATED" ]
+fields = ["STEP", "POPULATION", "HEALTHY", "SOCIAL D HEALTHY", "NOT SOCIAL D HEALTHY", "INFECTED", "SOCIAL D INFECTED", "NOT SOCIAL D INFECTED", "DEATHS FROM INFECTION", "DEATHS SOCIAL D", "DEATHS NOT SOCIAL D" ]
 rows = []
 step_count = 0
 
-while step_count < 500:
+while step_count < 200:
     step()
     step_count += 1
     #get stats
